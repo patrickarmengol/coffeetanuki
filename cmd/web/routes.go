@@ -14,7 +14,7 @@ func (app *application) routes() http.Handler {
 	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
 	// web routes
-	// router.HandlerFunc(http.MethodGet, "/hello", app.helloHandler)
+	router.HandlerFunc(http.MethodGet, "/", app.home)
 
 	return router
 }

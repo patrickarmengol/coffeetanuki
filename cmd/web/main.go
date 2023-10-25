@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"html/template"
 	"log/slog"
 	"os"
 	"sync"
@@ -30,9 +31,10 @@ type config struct {
 }
 
 type application struct {
-	config config
-	logger *slog.Logger
-	wg     sync.WaitGroup
+	config        config
+	logger        *slog.Logger
+	templateCache map[string]*template.Template
+	wg            sync.WaitGroup
 }
 
 func main() {
@@ -64,6 +66,12 @@ func main() {
 		config: cfg,
 		logger: slog.New(slog.NewTextHandler(os.Stdout, nil)),
 	}
+	templateCache, err := newTemplateCache()
+	if err != nil {
+		app.logger.Error(err.Error())
+		os.Exit(1)
+	}
+	app.templateCache = templateCache
 
 	// initialize db conn pool
 	db, err := app.openDB()
