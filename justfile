@@ -8,3 +8,10 @@ run:
 psql:
     psql ${CT_DB_DSN}
 
+# migrate up
+migrateup:
+    migrate -path=./migrations -database=${CT_DB_DSN} up
+
+# migrate down
+migratedown:
+    migrate -path=./migrations -database=${CT_DB_DSN} down

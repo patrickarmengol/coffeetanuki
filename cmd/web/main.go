@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/patrickarmengol/coffeetanuki/internal/data"
 	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
 )
 
@@ -33,6 +34,7 @@ type config struct {
 type application struct {
 	config        config
 	logger        *slog.Logger
+	models        data.Models
 	templateCache map[string]*template.Template
 	wg            sync.WaitGroup
 }
@@ -56,31 +58,40 @@ func main() {
 
 	flag.Parse()
 
-	// if `-version`, print version and exit
+	// if version flag, print version and exit
 	if *displayVersion {
 		fmt.Printf("Version:\t%s\n", version)
 	}
 
-	// construct application
-	app := &application{
-		config: cfg,
-		logger: slog.New(slog.NewTextHandler(os.Stdout, nil)),
-	}
-	templateCache, err := newTemplateCache()
-	if err != nil {
-		app.logger.Error(err.Error())
-		os.Exit(1)
-	}
-	app.templateCache = templateCache
+	// initialize structured lgr; writes to stdout
+	lgr := slog.New(slog.NewTextHandler(os.Stdout, nil))
 
 	// initialize db conn pool
-	db, err := app.openDB()
+	db, err := openDB(cfg.db)
 	if err != nil {
-		app.logger.Error(err.Error())
+		lgr.Error(err.Error())
 		os.Exit(1)
 	}
 	defer db.Close()
-	app.logger.Info("database connection pool established")
+	lgr.Info("database connection pool established")
+
+	// initialize models by providing db conn pool
+	mdls := data.NewModels(db)
+
+	// initialize template cache
+	tmpls, err := newTemplateCache()
+	if err != nil {
+		lgr.Error(err.Error())
+		os.Exit(1)
+	}
+
+	// construct application
+	app := &application{
+		config:        cfg,
+		logger:        lgr,
+		models:        mdls,
+		templateCache: tmpls,
+	}
 
 	// start service
 	err = app.serve()
