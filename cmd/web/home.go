@@ -3,5 +3,5 @@ package main
 import "net/http"
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	app.renderPage(w, r, http.StatusOK, "home.gohtml", nil)
+	app.render(w, r, http.StatusOK, "home.gohtml", nil)
 }

@@ -51,7 +51,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	for _, response := range htmxResponses {
 		name := filepath.Base(response)
 
-		ts, err := template.New(name).ParseFS(ui.Files, response)
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, response)
 		if err != nil {
 			return nil, err
 		}
@@ -62,25 +62,31 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	return cache, nil
 }
 
-func (app *application) renderPage(w http.ResponseWriter, r *http.Request, status int, page string, data *templateData) {
+func (app *application) render(w http.ResponseWriter, r *http.Request, status int, templateName string, data *templateData) {
 	// retrieve desired template from cache
-	ts, ok := app.templateCache[page]
+	ts, ok := app.templateCache[templateName]
 	if !ok {
-		err := fmt.Errorf("the template %s does not exist", page)
+		err := fmt.Errorf("the template %s does not exist", templateName)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
-	// initialize a buffer
+	// initialize a buffer, in case of errors executing template
 	buf := new(bytes.Buffer)
 
-	// execute with passed data
-	err := ts.ExecuteTemplate(buf, "base", data)
+	// execute template, passing data, and writing to buffer
+	var err error
+	if ts.Lookup("base") != nil {
+		err = ts.ExecuteTemplate(buf, "base", data)
+	} else {
+		err = ts.Execute(buf, data)
+	}
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 
+	// respond with buffer
 	w.WriteHeader(status)
 	buf.WriteTo(w)
 }
