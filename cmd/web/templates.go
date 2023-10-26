@@ -8,12 +8,20 @@ import (
 	"net/http"
 	"path/filepath"
 
+	"github.com/patrickarmengol/coffeetanuki/internal/data"
 	"github.com/patrickarmengol/coffeetanuki/ui"
 )
 
-type templateData struct{}
+type templateData struct {
+	Roaster  data.Roaster
+	Roasters []data.Roaster
+}
 
 var functions = template.FuncMap{}
+
+func newTemplateData(r *http.Request) templateData {
+	return templateData{}
+}
 
 func newTemplateCache() (map[string]*template.Template, error) {
 	cache := map[string]*template.Template{}
