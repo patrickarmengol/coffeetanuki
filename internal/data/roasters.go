@@ -8,11 +8,13 @@ import (
 )
 
 type Roaster struct {
-	ID        int64
-	Name      string
-	Location  string
-	CreatedAt time.Time
-	Version   int
+	ID          int64
+	Name        string
+	Description string
+	Website     string
+	Location    string
+	CreatedAt   time.Time
+	Version     int
 }
 
 type RoasterModel struct {
@@ -23,12 +25,12 @@ type RoasterModel struct {
 
 func (m *RoasterModel) Insert(roaster *Roaster) error {
 	stmt := `
-	INSERT INTO roasters (name, location)
-	VALUES ($1, $2)
+	INSERT INTO roasters (name, description, website, location)
+	VALUES ($1, $2, $3, $4)
 	RETURNING id, created_at, version
 	`
 
-	args := []any{roaster.Name, roaster.Location}
+	args := []any{roaster.Name, roaster.Description, roaster.Website, roaster.Location}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -44,7 +46,7 @@ func (m *RoasterModel) Get(id int64) (*Roaster, error) {
 	}
 
 	stmt := `
-	SELECT id, name, location, created_at, version
+	SELECT id, name, description, website, location, created_at, version
 	FROM roasters
 	WHERE id = $1
 	`
@@ -55,7 +57,7 @@ func (m *RoasterModel) Get(id int64) (*Roaster, error) {
 	defer cancel()
 
 	var roaster Roaster
-	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.Name, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
+	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.Name, &roaster.Description, &roaster.Website, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -70,7 +72,7 @@ func (m *RoasterModel) Get(id int64) (*Roaster, error) {
 
 func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 	stmt := `
-	SELECT id, name, location, created_at, version
+	SELECT id, name, description, website, location, created_at, version
 	FROM roasters
 	`
 
@@ -87,7 +89,7 @@ func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 	for rows.Next() {
 		var roaster Roaster
 
-		err := rows.Scan(&roaster.ID, &roaster.Name, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
+		err := rows.Scan(&roaster.ID, &roaster.Name, &roaster.Description, &roaster.Website, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
 		if err != nil {
 			return nil, err
 		}
@@ -106,12 +108,12 @@ func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 func (m *RoasterModel) Update(roaster *Roaster) error {
 	stmt := `
 	UPDATE roasters
-	SET name = $1, location = $2, version = version + 1
+	SET name = $1, description = $1, website = $1, location = $2, version = version + 1
 	WHERE id = $3 AND version = $4
 	RETURNING version
 	`
 
-	args := []any{roaster.Name, roaster.Location, roaster.ID, roaster.Version}
+	args := []any{roaster.Name, roaster.Description, roaster.Website, roaster.Location, roaster.ID, roaster.Version}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()

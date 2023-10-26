@@ -6,20 +6,22 @@
     <div class='container'>
         <table class='table is-fullwidth is-hoverable'>
             <thead>
-            <tr>
-                <th>Name</th>
-                <th>Location</th>
-                <th>ID</th>
-            </tr>
+                <tr>
+                    <th>Name</th>
+                    <th>Website</th>
+                    <th>Location</th>
+                    <th>ID</th>
+                </tr>
             </thead>
             <tbody>
-            {{range .Roasters}}
-            <tr>
-                <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
-                <td>{{.Location}}</td>
-                <td>{{.ID}}</td>
-            </tr>
-            {{end}}
+                {{range .Roasters}}
+                <tr>
+                    <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
+                    <td><a href='{{.Website}}'>{{.Website}}</a></td>
+                    <td>{{.Location}}</td>
+                    <td>{{.ID}}</td>
+                </tr>
+                {{end}}
             </tbody>
         </table>
     </div>
