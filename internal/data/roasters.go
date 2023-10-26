@@ -77,7 +77,7 @@ func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, stmt, nil)
+	rows, err := m.DB.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
