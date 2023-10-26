@@ -29,7 +29,20 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 
 	// render template response
 	td := newTemplateData(r)
-	td.Roaster = *roaster
+	td.Roaster = roaster
 
 	app.render(w, r, http.StatusOK, "roaster.gohtml", &td)
+}
+
+func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
+	roasters, err := app.models.Roasters.GetAll()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	td := newTemplateData(r)
+	td.Roasters = roasters
+
+	app.render(w, r, http.StatusOK, "roasterlist.gohtml", &td)
 }

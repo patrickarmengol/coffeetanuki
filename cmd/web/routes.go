@@ -16,7 +16,8 @@ func (app *application) routes() http.Handler {
 	// web routes
 	router.HandlerFunc(http.MethodGet, "/", app.home)
 
-	router.HandlerFunc(http.MethodGet, "/roaster/:id", app.roasterView)
+	router.HandlerFunc(http.MethodGet, "/roasters/:id", app.roasterView)
+	router.HandlerFunc(http.MethodGet, "/roasters", app.roasterList)
 
 	return router
 }
