@@ -1,0 +1,30 @@
+{{define "title"}}Roasters{{end}}
+
+{{define "main"}}
+{{if .Roasters}}
+<section class='section'>
+    <div class='container'>
+        <table class='table is-fullwidth is-hoverable'>
+            <thead>
+            <tr>
+                <th>Name</th>
+                <th>Location</th>
+                <th>ID</th>
+            </tr>
+            </thead>
+            <tbody>
+            {{range .Roasters}}
+            <tr>
+                <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
+                <td>{{.Location}}</td>
+                <td>{{.ID}}</td>
+            </tr>
+            {{end}}
+            </tbody>
+        </table>
+    </div>
+</section>
+{{else}}
+<p>There's nothing to see here...</p>
+{{end}}
+{{end}}
