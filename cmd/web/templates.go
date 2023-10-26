@@ -13,8 +13,8 @@ import (
 )
 
 type templateData struct {
-	Roaster  data.Roaster
-	Roasters []data.Roaster
+	Roaster  *data.Roaster
+	Roasters []*data.Roaster
 }
 
 var functions = template.FuncMap{}
