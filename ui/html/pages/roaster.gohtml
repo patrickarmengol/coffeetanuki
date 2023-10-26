@@ -1,0 +1,15 @@
+{{define "title"}}{{.Roaster.Name}}{{end}}
+
+{{define "main"}}
+{{with .Roaster}}
+<section class='section'>
+    <div class='container content'>
+        <h1>Roaster Details: {{.Name}}</h1>
+        <p>id: {{.ID}}</p>
+        <p>location: {{.Location}}</p>
+        <p>created_at: {{.CreatedAt}}</p>
+        <p>version: {{.Version}}</p>
+    </div>
+</section>
+{{end}}
+{{end}}
