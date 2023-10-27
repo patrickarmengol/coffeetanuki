@@ -11,7 +11,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	// parse `id` path parameter
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w, r)
+		app.badRequestResponse(w)
 		return
 	}
 
@@ -20,7 +20,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w, r)
+			app.notFoundResponse(w)
 		default:
 			app.serverErrorResponse(w, r, err)
 		}
