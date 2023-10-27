@@ -31,7 +31,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	td := newTemplateData(r)
 	td.Roaster = roaster
 
-	app.render(w, r, http.StatusOK, "roaster.gohtml", &td)
+	app.render(w, r, http.StatusOK, "roasterview.gohtml", &td)
 }
 
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
