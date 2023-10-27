@@ -15,6 +15,7 @@ import (
 type templateData struct {
 	Roaster  *data.Roaster
 	Roasters []*data.Roaster
+	Form     any
 }
 
 var functions = template.FuncMap{}
@@ -70,7 +71,7 @@ func newTemplateCache() (map[string]*template.Template, error) {
 	return cache, nil
 }
 
-func (app *application) render(w http.ResponseWriter, r *http.Request, status int, templateName string, data *templateData) {
+func (app *application) render(w http.ResponseWriter, r *http.Request, status int, templateName string, block string, data *templateData) {
 	// retrieve desired template from cache
 	ts, ok := app.templateCache[templateName]
 	if !ok {
@@ -83,12 +84,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf := new(bytes.Buffer)
 
 	// execute template, passing data, and writing to buffer
-	var err error
-	if ts.Lookup("base") != nil {
-		err = ts.ExecuteTemplate(buf, "base", data)
-	} else {
-		err = ts.Execute(buf, data)
-	}
+	err := ts.ExecuteTemplate(buf, block, data)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
