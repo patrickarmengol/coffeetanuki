@@ -20,8 +20,8 @@ type templateData struct {
 
 var functions = template.FuncMap{}
 
-func newTemplateData(r *http.Request) templateData {
-	return templateData{}
+func newTemplateData(r *http.Request) *templateData {
+	return &templateData{}
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {
@@ -68,6 +68,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf := new(bytes.Buffer)
 
 	// execute template, passing data, and writing to buffer
+	// data is currently a pointer to allow for nil; may change later
 	err := ts.ExecuteTemplate(buf, templateName, data)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
