@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/go-playground/form/v4"
 	"github.com/patrickarmengol/coffeetanuki/internal/data"
 	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
 )
@@ -33,6 +34,7 @@ type config struct {
 
 type application struct {
 	config        config
+	formDecoder   *form.Decoder
 	logger        *slog.Logger
 	models        data.Models
 	templateCache map[string]*template.Template
@@ -85,9 +87,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	// initialize form decoder
+	fdcdr := form.NewDecoder()
+
 	// construct application
 	app := &application{
 		config:        cfg,
+		formDecoder:   fdcdr,
 		logger:        lgr,
 		models:        mdls,
 		templateCache: tmpls,
