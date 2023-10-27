@@ -23,6 +23,10 @@ func (app *application) routes() http.Handler {
 
 	router.HandlerFunc(http.MethodGet, "/roasters/view/:id", app.roasterView)
 	router.HandlerFunc(http.MethodGet, "/roasters/list", app.roasterList)
+	router.HandlerFunc(http.MethodGet, "/roasters/create", app.roasterCreate)
+
+	// htmx
+	router.HandlerFunc(http.MethodPost, "/roasters/create", app.roasterCreatePost)
 
 	return router
 }

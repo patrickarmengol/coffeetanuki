@@ -46,3 +46,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 
 	app.render(w, r, http.StatusOK, "roasterlist.gohtml", "base", &td)
 }
+
+func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
+	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", nil)
+}
