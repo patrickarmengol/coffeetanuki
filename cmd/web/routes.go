@@ -18,11 +18,11 @@ func (app *application) routes() http.Handler {
 	// router.NotFound = http.HandlerFunc(app.NotFoundResponse)
 	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
 
-	// web routes
+	// pages
 	router.HandlerFunc(http.MethodGet, "/", app.home)
 
-	router.HandlerFunc(http.MethodGet, "/roasters/:id", app.roasterView)
-	router.HandlerFunc(http.MethodGet, "/roasters", app.roasterList)
+	router.HandlerFunc(http.MethodGet, "/roasters/view/:id", app.roasterView)
+	router.HandlerFunc(http.MethodGet, "/roasters/list", app.roasterList)
 
 	return router
 }
