@@ -52,30 +52,14 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		cache[name] = ts
 	}
 
-	htmxResponses, err := fs.Glob(ui.Files, "html/htmx/*.gohtml")
-	if err != nil {
-		return nil, err
-	}
-
-	for _, response := range htmxResponses {
-		name := filepath.Base(response)
-
-		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, response)
-		if err != nil {
-			return nil, err
-		}
-
-		cache[name] = ts
-	}
-
 	return cache, nil
 }
 
-func (app *application) render(w http.ResponseWriter, r *http.Request, status int, templateName string, block string, data *templateData) {
+func (app *application) render(w http.ResponseWriter, r *http.Request, status int, fileName string, templateName string, data *templateData) {
 	// retrieve desired template from cache
-	ts, ok := app.templateCache[templateName]
+	ts, ok := app.templateCache[fileName]
 	if !ok {
-		err := fmt.Errorf("the template %s does not exist", templateName)
+		err := fmt.Errorf("the template at %s does not exist", fileName)
 		app.serverErrorResponse(w, r, err)
 		return
 	}
@@ -84,7 +68,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	buf := new(bytes.Buffer)
 
 	// execute template, passing data, and writing to buffer
-	err := ts.ExecuteTemplate(buf, block, data)
+	err := ts.ExecuteTemplate(buf, templateName, data)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
