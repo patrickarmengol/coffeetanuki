@@ -5,6 +5,8 @@ import (
 	"database/sql"
 	"errors"
 	"time"
+
+	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
 type Roaster struct {
@@ -19,6 +21,15 @@ type Roaster struct {
 
 type RoasterModel struct {
 	DB *sql.DB
+}
+
+// validate
+
+func (r *Roaster) Validate(v *validator.Validator) {
+	v.CheckField(validator.NotBlank(r.Name), "name", "This field cannot be blank")
+	v.CheckField(validator.NotBlank(r.Description), "description", "This field cannot be blank")
+	v.CheckField(validator.IsURL(r.Website), "website", "This field must be a valid URL (eg. https://coffeetanuki.com)")
+	v.CheckField(validator.Matches(r.Location, validator.LocationRX), "location", "This field must be a valid location (eg. Seattle, Washington, USA)")
 }
 
 // create
