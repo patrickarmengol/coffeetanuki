@@ -5,7 +5,17 @@ import (
 	"net/http"
 
 	"github.com/patrickarmengol/coffeetanuki/internal/data"
+	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
+
+type roasterCreateForm struct {
+	Name                string        `form:"name"`
+	Description         string        `form:"description"`
+	Website             string        `form:"website"`
+	Location            string        `form:"location"`
+	Result              *data.Roaster `form:"-"`
+	validator.Validator `form:"-"`
+}
 
 func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	// parse `id` path parameter
@@ -48,5 +58,51 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", nil)
+	td := newTemplateData(r)
+	td.Form = roasterCreateForm{}
+
+	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
+}
+
+func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request) {
+	// parse and decode form
+	var form roasterCreateForm
+	err := app.decodePostForm(r, &form)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// pass into model
+	roaster := &data.Roaster{
+		Name:        form.Name,
+		Description: form.Description,
+		Website:     form.Website,
+		Location:    form.Location,
+	}
+
+	// validate
+	roaster.Validate(&form.Validator)
+
+	// case invalid
+	if !form.Valid() {
+		td := newTemplateData(r)
+		td.Form = form
+		app.render(w, r, http.StatusUnprocessableEntity, "roastercreate.gohtml", "form", td)
+		return
+	}
+
+	// case valid
+	err = app.models.Roasters.Insert(roaster)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// reset form and display success message
+	td := newTemplateData(r)
+	td.Form = roasterCreateForm{
+		Result: roaster,
+	}
+	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }
