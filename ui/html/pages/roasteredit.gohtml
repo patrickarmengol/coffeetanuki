@@ -1,0 +1,51 @@
+{{define "title"}}Edit Roaster #{{.Roaster.ID}}{{end}}
+
+{{define "main"}}
+<section class='section'>
+    <div class='container'>
+        {{block "form" .}}
+        <form hx-put='/roasters/edit/{{.Roaster.ID}}' hx-target='this' hx-swap='outerHTML'>
+            <div>
+                <label for='name'>Name:</label>
+                {{with .Validator.FieldErrors.name}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='name' name='name' value='{{.Roaster.Name}}' required />
+            </div>
+            <div>
+                <label for='description'>Description:</label>
+                {{with .Validator.FieldErrors.description}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='description' name='description' value='{{.Roaster.Description}}' required />
+            </div>
+            <div>
+                <label for='website'>Website:</label>
+                {{with .Validator.FieldErrors.website}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='website' name='website' value='{{.Roaster.Website}}' required />
+            </div>
+            <div>
+                <label for='location'>Location:</label>
+                {{with .Validator.FieldErrors.location}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='location' name='location' value='{{.Roaster.Location}}' required />
+            </div>
+            <div>
+                <button type='submit'>Submit</button>
+            </div>
+            <div>
+                {{if .Result}}
+                Roaster edited at: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
+                {{else if (or .Validator.FieldErrors .Validator.NonFieldErrors)}}
+                Could not edit roaster. Check errors and try again.
+                {{else}}
+                {{end}}
+            </div>
+        </form>
+        {{end}}
+    </div>
+</section>
+{{end}}
