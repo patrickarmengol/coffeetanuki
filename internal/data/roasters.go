@@ -119,8 +119,8 @@ func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 func (m *RoasterModel) Update(roaster *Roaster) error {
 	stmt := `
 	UPDATE roasters
-	SET name = $1, description = $1, website = $1, location = $2, version = version + 1
-	WHERE id = $3 AND version = $4
+	SET name = $1, description = $2, website = $3, location = $4, version = version + 1
+	WHERE id = $5 AND version = $6
 	RETURNING version
 	`
 
