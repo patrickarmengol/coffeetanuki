@@ -106,3 +106,86 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }
+
+func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	roaster, err := app.models.Roasters.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	v := validator.New()
+
+	td := newTemplateData(r)
+	td.Validator = v
+	td.Roaster = roaster
+
+	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "base", td)
+}
+
+func (app *application) roasterEditPut(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	roaster, err := app.models.Roasters.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	var form roasterForm
+	err = app.decodePostForm(r, &form)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// pass into model
+	roaster.Name = form.Name
+	roaster.Description = form.Description
+	roaster.Website = form.Website
+	roaster.Location = form.Location
+
+	v := validator.New()
+	roaster.Validate(v)
+
+	if !v.Valid() {
+		td := newTemplateData(r)
+		td.Validator = v
+		td.Roaster = roaster
+		app.render(w, r, http.StatusUnprocessableEntity, "roasteredit.gohtml", "form", td)
+		return
+	}
+
+	err = app.models.Roasters.Update(roaster)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	// display success message
+	td := newTemplateData(r)
+	td.Validator = v
+	td.Roaster = roaster
+	td.Result = true
+	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "form", td)
+}
