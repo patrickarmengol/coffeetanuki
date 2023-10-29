@@ -8,12 +8,11 @@ import (
 	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
-type roasterCreateForm struct {
-	Name                string        `form:"name"`
-	Description         string        `form:"description"`
-	Website             string        `form:"website"`
-	Location            string        `form:"location"`
-	Result              *data.Roaster `form:"-"`
+type roasterForm struct {
+	Name                string `form:"name"`
+	Description         string `form:"description"`
+	Website             string `form:"website"`
+	Location            string `form:"location"`
 	validator.Validator `form:"-"`
 }
 
@@ -59,14 +58,14 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 	td := newTemplateData(r)
-	td.Form = roasterCreateForm{}
+	td.Form = roasterForm{}
 
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
 }
 
 func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request) {
 	// parse and decode form
-	var form roasterCreateForm
+	var form roasterForm
 	err := app.decodePostForm(r, &form)
 	if err != nil {
 		app.badRequestResponse(w)
@@ -101,8 +100,7 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 
 	// reset form and display success message
 	td := newTemplateData(r)
-	td.Form = roasterCreateForm{
-		Result: roaster,
-	}
+	td.Form = roasterForm{}
+	td.Roaster = roaster
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }

@@ -37,9 +37,9 @@
                 <button type='submit'>Submit</button>
             </div>
             <div>
-                {{if .Form.Result}}
-                Roaster created at: <a href='/roasters/view/{{.Form.Result.ID}}'>{{.Form.Result.Name}}</a>
-                {{else if .Form.FieldErrors}}
+                {{if .Roaster}}
+                Roaster created at: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
+                {{else if (or .Form.FieldErrors .Form.NonFieldErrors)}}
                 Could not create roaster. Check errors and try again.
                 {{else}}
                 {{end}}
