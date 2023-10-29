@@ -9,11 +9,10 @@ import (
 )
 
 type roasterForm struct {
-	Name                string `form:"name"`
-	Description         string `form:"description"`
-	Website             string `form:"website"`
-	Location            string `form:"location"`
-	validator.Validator `form:"-"`
+	Name        string `form:"name"`
+	Description string `form:"description"`
+	Website     string `form:"website"`
+	Location    string `form:"location"`
 }
 
 func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +57,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 	td := newTemplateData(r)
-	td.Form = roasterForm{}
+	td.Roaster = &data.Roaster{}
 
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
 }
@@ -81,12 +80,14 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 	}
 
 	// validate
-	roaster.Validate(&form.Validator)
+	v := validator.New()
+	roaster.Validate(v)
 
 	// case invalid
-	if !form.Valid() {
+	if !v.Valid() {
 		td := newTemplateData(r)
-		td.Form = form
+		td.Validator = v
+		td.Roaster = roaster
 		app.render(w, r, http.StatusUnprocessableEntity, "roastercreate.gohtml", "form", td)
 		return
 	}
@@ -98,9 +99,10 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// reset form and display success message
+	// display success message
 	td := newTemplateData(r)
-	td.Form = roasterForm{}
+	td.Validator = v
 	td.Roaster = roaster
+	td.Result = true
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }

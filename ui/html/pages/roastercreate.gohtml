@@ -7,39 +7,39 @@
         <form hx-post='/roasters/create' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Name:</label>
-                {{with .Form.FieldErrors.name}}
+                {{with .Validator.FieldErrors.name}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='text' id='name' name='name' value='{{.Form.Name}}' required />
+                <input type='text' id='name' name='name' value='{{if not .Result}}{{.Roaster.Name}}{{end}}' required />
             </div>
             <div>
                 <label for='description'>Description:</label>
-                {{with .Form.FieldErrors.description}}
+                {{with .Validator.FieldErrors.description}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='text' id='description' name='description' value='{{.Form.Description}}' required />
+                <input type='text' id='description' name='description' value='{{if not .Result}}{{.Roaster.Description}}{{end}}' required />
             </div>
             <div>
                 <label for='website'>Website:</label>
-                {{with .Form.FieldErrors.website}}
+                {{with .Validator.FieldErrors.website}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='text' id='website' name='website' value='{{.Form.Website}}' required />
+                <input type='text' id='website' name='website' value='{{if not .Result}}{{.Roaster.Website}}{{end}}' required />
             </div>
             <div>
                 <label for='location'>Location:</label>
-                {{with .Form.FieldErrors.location}}
+                {{with .Validator.FieldErrors.location}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='text' id='location' name='location' value='{{.Form.Location}}' required />
+                <input type='text' id='location' name='location' value='{{if not .Result}}{{.Roaster.Location}}{{end}}' required />
             </div>
             <div>
                 <button type='submit'>Submit</button>
             </div>
             <div>
-                {{if .Roaster}}
+                {{if .Result}}
                 Roaster created at: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
-                {{else if (or .Form.FieldErrors .Form.NonFieldErrors)}}
+                {{else if (or .Validator.FieldErrors .Validator.NonFieldErrors)}}
                 Could not create roaster. Check errors and try again.
                 {{else}}
                 {{end}}

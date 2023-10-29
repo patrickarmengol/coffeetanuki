@@ -9,13 +9,15 @@ import (
 	"path/filepath"
 
 	"github.com/patrickarmengol/coffeetanuki/internal/data"
+	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 	"github.com/patrickarmengol/coffeetanuki/ui"
 )
 
 type templateData struct {
-	Roaster  *data.Roaster
-	Roasters []*data.Roaster
-	Form     any
+	Roaster   *data.Roaster
+	Roasters  []*data.Roaster
+	Validator *validator.Validator
+	Result    bool
 }
 
 var functions = template.FuncMap{}
