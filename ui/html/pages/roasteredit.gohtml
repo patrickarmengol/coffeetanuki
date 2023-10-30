@@ -39,10 +39,7 @@
             </div>
             <div>
                 {{if .Result}}
-                Roaster edited at: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
-                {{else if (or .Validator.FieldErrors .Validator.NonFieldErrors)}}
-                Could not edit roaster. Check errors and try again.
-                {{else}}
+                Roaster successfully edited: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
                 {{end}}
             </div>
         </form>
