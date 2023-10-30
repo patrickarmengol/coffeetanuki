@@ -3,6 +3,7 @@
 {{define "main"}}
 <section class='section'>
     <div class='container'>
+        <div id='htmx-error' hidden></div>
         {{block "form" .}}
         <form hx-put='/roasters/edit/{{.Roaster.ID}}' hx-target='this' hx-swap='outerHTML'>
             <div>
