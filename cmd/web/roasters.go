@@ -135,7 +135,7 @@ func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "base", td)
 }
 
-func (app *application) roasterEditPut(w http.ResponseWriter, r *http.Request) {
+func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.badRequestResponse(w)
