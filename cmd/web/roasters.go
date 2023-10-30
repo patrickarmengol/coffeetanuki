@@ -57,6 +57,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 	td := newTemplateData(r)
+	td.Validator = validator.New()
 	td.Roaster = &data.Roaster{}
 
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
@@ -178,7 +179,6 @@ func (app *application) roasterEditPut(w http.ResponseWriter, r *http.Request) {
 
 	err = app.models.Roasters.Update(roaster)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
 			app.editConflictResponse(w)
