@@ -179,6 +179,12 @@ func (app *application) roasterEditPut(w http.ResponseWriter, r *http.Request) {
 	err = app.models.Roasters.Update(roaster)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		switch {
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
 		return
 	}
 

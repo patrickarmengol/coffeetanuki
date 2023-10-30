@@ -32,3 +32,8 @@ func (app *application) badRequestResponse(w http.ResponseWriter) {
 func (app *application) notFoundResponse(w http.ResponseWriter) {
 	app.errorResponse(w, http.StatusNotFound)
 }
+
+// 409 - Edit Conflict
+func (app *application) editConflictResponse(w http.ResponseWriter) {
+	app.errorResponse(w, http.StatusConflict)
+}
