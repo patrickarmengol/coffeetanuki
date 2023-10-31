@@ -3,33 +3,30 @@ package main
 import (
 	"net/http"
 
-	"github.com/julienschmidt/httprouter"
+	"github.com/alexedwards/flow"
 	"github.com/patrickarmengol/coffeetanuki/ui"
 )
 
 func (app *application) routes() http.Handler {
-	router := httprouter.New()
+	mux := flow.New()
 
-	// load fileserver on embedded static files
+	// static
 	fileServer := http.FileServer(http.FS(ui.Files))
-	router.Handler(http.MethodGet, "/static/*filepath", fileServer)
+	mux.Handle("/static/...", fileServer, http.MethodGet)
 
-	// overwrite default error response handlers
-	// router.NotFound = http.HandlerFunc(app.NotFoundResponse)
-	// router.MethodNotAllowed = http.HandlerFunc(app.methodNotAllowedResponse)
+	// home
+	mux.HandleFunc("/", app.home, http.MethodGet)
 
-	// pages
-	router.HandlerFunc(http.MethodGet, "/", app.home)
+	// roaster pages
+	mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
+	mux.HandleFunc("/roasters/new", app.roasterCreate, http.MethodGet)
+	mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
+	mux.HandleFunc("/roasters/:id/edit", app.roasterEdit, http.MethodGet)
 
-	router.HandlerFunc(http.MethodGet, "/roasters/view/:id", app.roasterView)
-	router.HandlerFunc(http.MethodGet, "/roasters/list", app.roasterList)
-	router.HandlerFunc(http.MethodGet, "/roasters/create", app.roasterCreate)
-	router.HandlerFunc(http.MethodGet, "/roasters/edit/:id", app.roasterEdit)
+	// roaster htmx
+	mux.HandleFunc("/roasters", app.roasterCreatePost, http.MethodPost)
+	mux.HandleFunc("/roasters/:id", app.roasterEditPatch, http.MethodPatch)
+	mux.HandleFunc("/roasters/:id", app.roasterRemove, http.MethodDelete)
 
-	// htmx
-	router.HandlerFunc(http.MethodPost, "/roasters/create", app.roasterCreatePost)
-	router.HandlerFunc(http.MethodPatch, "/roasters/edit/:id", app.roasterEditPatch)
-	router.HandlerFunc(http.MethodDelete, "/roasters/delete/:id", app.roasterRemove)
-
-	return router
+	return mux
 }

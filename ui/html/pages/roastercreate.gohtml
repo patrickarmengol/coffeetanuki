@@ -5,7 +5,7 @@
     <div class='container'>
         <div id='htmx-error' hidden></div>
         {{block "form" .}}
-        <form hx-post='/roasters/create' hx-target='this' hx-swap='outerHTML'>
+        <form hx-post='/roasters' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Name:</label>
                 {{with .Validator.FieldErrors.name}}
@@ -39,7 +39,7 @@
             </div>
             <div>
                 {{if .Result}}
-                Roaster successfully created: <a href='/roasters/view/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
+                Roaster successfully created: <a href='/roasters/{{.Roaster.ID}}'>{{.Roaster.Name}}</a>
                 {{end}}
             </div>
         </form>
