@@ -4,6 +4,7 @@
 {{if .Roasters}}
 <section class='section'>
     <div class='container'>
+        <div id='htmx-error' hidden></div>
         <table class='table is-fullwidth is-hoverable'>
             <thead>
                 <tr>
@@ -11,15 +12,17 @@
                     <th>Website</th>
                     <th>Location</th>
                     <th>ID</th>
+                    <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
                 {{range .Roasters}}
                 <tr>
                     <td><a href='/roasters/view/{{.ID}}'>{{.Name}}</a></td>
                     <td><a href='{{.Website}}'>{{.Website}}</a></td>
                     <td>{{.Location}}</td>
                     <td>{{.ID}}</td>
+                    <td><a class='button' href='/roasters/edit/{{.ID}}'>Edit</a> <button class='button' hx-delete='/roasters/delete/{{.ID}}'>Delete</button></td>
                 </tr>
                 {{end}}
             </tbody>
