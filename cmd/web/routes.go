@@ -29,6 +29,7 @@ func (app *application) routes() http.Handler {
 	// htmx
 	router.HandlerFunc(http.MethodPost, "/roasters/create", app.roasterCreatePost)
 	router.HandlerFunc(http.MethodPatch, "/roasters/edit/:id", app.roasterEditPatch)
+	router.HandlerFunc(http.MethodDelete, "/roasters/delete/:id", app.roasterRemove)
 
 	return router
 }

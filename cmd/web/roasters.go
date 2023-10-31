@@ -195,3 +195,24 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "form", td)
 }
+
+func (app *application) roasterRemove(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	err = app.models.Roasters.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// 200 ok default response
+}
