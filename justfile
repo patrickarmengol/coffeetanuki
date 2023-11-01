@@ -8,10 +8,22 @@ run:
 psql:
     psql ${CT_DB_DSN}
 
-# migrate up
+# create a new migration
+migratenew name:
+    migrate create -seq -ext=.sql -dir=./migrations {{name}}
+
+# migrate up all the way
 migrateup:
     migrate -path=./migrations -database=${CT_DB_DSN} up
 
-# migrate down
+# migrate down all the way
 migratedown:
     migrate -path=./migrations -database=${CT_DB_DSN} down
+
+# migrate to a specific version
+migrateto version:
+    migrate -path=./migrations -database=${CT_DB_DSN} goto {{version}}
+
+# force the migration version number
+migrateforce version:
+    migrate -path=./migrations -database=${CT_DB_DSN} force {{version}}
