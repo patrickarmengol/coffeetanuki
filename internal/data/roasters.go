@@ -34,7 +34,7 @@ func (r *Roaster) Validate(v *validator.Validator) {
 
 // create
 
-func (m *RoasterModel) Insert(roaster *Roaster) error {
+func (m RoasterModel) Insert(roaster *Roaster) error {
 	stmt := `
 	INSERT INTO roasters (name, description, website, location)
 	VALUES ($1, $2, $3, $4)
@@ -51,7 +51,7 @@ func (m *RoasterModel) Insert(roaster *Roaster) error {
 
 // read
 
-func (m *RoasterModel) Get(id int64) (*Roaster, error) {
+func (m RoasterModel) Get(id int64) (*Roaster, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -81,7 +81,7 @@ func (m *RoasterModel) Get(id int64) (*Roaster, error) {
 	return &roaster, nil
 }
 
-func (m *RoasterModel) GetAll() ([]*Roaster, error) {
+func (m RoasterModel) GetAll() ([]*Roaster, error) {
 	stmt := `
 	SELECT id, name, description, website, location, created_at, version
 	FROM roasters
@@ -116,7 +116,7 @@ func (m *RoasterModel) GetAll() ([]*Roaster, error) {
 
 // update
 
-func (m *RoasterModel) Update(roaster *Roaster) error {
+func (m RoasterModel) Update(roaster *Roaster) error {
 	stmt := `
 	UPDATE roasters
 	SET name = $1, description = $2, website = $3, location = $4, version = version + 1
@@ -144,7 +144,7 @@ func (m *RoasterModel) Update(roaster *Roaster) error {
 
 // delete
 
-func (m *RoasterModel) Delete(id int64) error {
+func (m RoasterModel) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
