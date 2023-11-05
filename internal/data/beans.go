@@ -21,7 +21,7 @@ type Bean struct {
 	Version    int
 }
 
-type BeanModel struct {
+type BeanRepository struct {
 	DB *sql.DB
 }
 
@@ -35,7 +35,7 @@ func (b *Bean) Validate(v *validator.Validator) {
 
 // create
 
-func (m BeanModel) Insert(bean *Bean) error {
+func (rep BeanRepository) Insert(bean *Bean) error {
 	stmt := `
 	INSERT INTO beans (name, roast_level, roaster_id)
 	VALUES ($1, $2, $3)
@@ -47,12 +47,12 @@ func (m BeanModel) Insert(bean *Bean) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
+	return rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
 }
 
 // read
 
-func (m BeanModel) Get(id int64) (*Bean, error) {
+func (rep BeanRepository) Get(id int64) (*Bean, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -69,7 +69,7 @@ func (m BeanModel) Get(id int64) (*Bean, error) {
 	defer cancel()
 
 	var bean Bean
-	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.RoasterID, &bean.CreatedAt, &bean.Version)
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.RoasterID, &bean.CreatedAt, &bean.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -82,7 +82,7 @@ func (m BeanModel) Get(id int64) (*Bean, error) {
 	return &bean, nil
 }
 
-func (m BeanModel) GetAll() ([]*Bean, error) {
+func (rep BeanRepository) GetAll() ([]*Bean, error) {
 	stmt := `
 	SELECT id, name, roast_level, roaster_id, created_at, version
 	FROM roasters
@@ -91,7 +91,7 @@ func (m BeanModel) GetAll() ([]*Bean, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, stmt)
+	rows, err := rep.DB.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +115,7 @@ func (m BeanModel) GetAll() ([]*Bean, error) {
 	return beans, nil
 }
 
-func (m BeanModel) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
+func (rep BeanRepository) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
 	stmt := `
 	SELECT id, name, roast_level, created_at, version
 	FROM roasters
@@ -127,7 +127,7 @@ func (m BeanModel) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, stmt, args)
+	rows, err := rep.DB.QueryContext(ctx, stmt, args)
 	if err != nil {
 		return nil, err
 	}
@@ -153,7 +153,7 @@ func (m BeanModel) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
 
 // update
 
-func (m BeanModel) Update(bean *Bean) error {
+func (rep BeanRepository) Update(bean *Bean) error {
 	stmt := `
 	UPDATE beans
 	SET name = $1, roast_level = $2, roaster_id = $3, version = version + 1
@@ -166,7 +166,7 @@ func (m BeanModel) Update(bean *Bean) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.Version)
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -181,7 +181,7 @@ func (m BeanModel) Update(bean *Bean) error {
 
 // delete
 
-func (m BeanModel) Delete(id int64) error {
+func (rep BeanRepository) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
@@ -194,7 +194,7 @@ func (m BeanModel) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, query, id)
+	result, err := rep.DB.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}

@@ -10,14 +10,14 @@ var (
 	ErrEditConflict   = errors.New("edit conflict")
 )
 
-type Models struct {
-	Roasters RoasterModel
-	Beans    BeanModel
+type Repositories struct {
+	Roasters RoasterRepository
+	Beans    BeanRepository
 }
 
-func NewModels(db *sql.DB) Models {
-	return Models{
-		Roasters: RoasterModel{DB: db},
-		Beans:    BeanModel{DB: db},
+func NewRepositories(db *sql.DB) Repositories {
+	return Repositories{
+		Roasters: RoasterRepository{DB: db},
+		Beans:    BeanRepository{DB: db},
 	}
 }

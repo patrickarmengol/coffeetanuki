@@ -20,7 +20,7 @@ type Roaster struct {
 	Version     int
 }
 
-type RoasterModel struct {
+type RoasterRepository struct {
 	DB *sql.DB
 }
 
@@ -35,7 +35,7 @@ func (r *Roaster) Validate(v *validator.Validator) {
 
 // create
 
-func (m RoasterModel) Insert(roaster *Roaster) error {
+func (rep RoasterRepository) Insert(roaster *Roaster) error {
 	stmt := `
 	INSERT INTO roasters (name, description, website, location)
 	VALUES ($1, $2, $3, $4)
@@ -47,12 +47,12 @@ func (m RoasterModel) Insert(roaster *Roaster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return m.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.CreatedAt, &roaster.Version)
+	return rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.CreatedAt, &roaster.Version)
 }
 
 // read
 
-func (m RoasterModel) Get(id int64) (*Roaster, error) {
+func (rep RoasterRepository) Get(id int64) (*Roaster, error) {
 	if id < 1 {
 		return nil, ErrRecordNotFound
 	}
@@ -69,7 +69,7 @@ func (m RoasterModel) Get(id int64) (*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, stmt, args...)
+	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -111,7 +111,7 @@ func (m RoasterModel) Get(id int64) (*Roaster, error) {
 	return &roaster, nil
 }
 
-func (m RoasterModel) GetAll() ([]*Roaster, error) {
+func (rep RoasterRepository) GetAll() ([]*Roaster, error) {
 	stmt := `
 	SELECT r.*, b.*
 	FROM roasters r
@@ -121,7 +121,7 @@ func (m RoasterModel) GetAll() ([]*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := m.DB.QueryContext(ctx, stmt)
+	rows, err := rep.DB.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (m RoasterModel) GetAll() ([]*Roaster, error) {
 
 // update
 
-func (m RoasterModel) Update(roaster *Roaster) error {
+func (rep RoasterRepository) Update(roaster *Roaster) error {
 	stmt := `
 	UPDATE roasters
 	SET name = $1, description = $2, website = $3, location = $4, version = version + 1
@@ -190,7 +190,7 @@ func (m RoasterModel) Update(roaster *Roaster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.Version)
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -205,7 +205,7 @@ func (m RoasterModel) Update(roaster *Roaster) error {
 
 // delete
 
-func (m RoasterModel) Delete(id int64) error {
+func (rep RoasterRepository) Delete(id int64) error {
 	if id < 1 {
 		return ErrRecordNotFound
 	}
@@ -220,7 +220,7 @@ func (m RoasterModel) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := m.DB.ExecContext(ctx, stmt, args...)
+	result, err := rep.DB.ExecContext(ctx, stmt, args...)
 	if err != nil {
 		return err
 	}

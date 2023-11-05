@@ -24,7 +24,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// read roaster from db
-	roaster, err := app.models.Roasters.Get(id)
+	roaster, err := app.repositories.Roasters.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -43,7 +43,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
-	roasters, err := app.models.Roasters.GetAll()
+	roasters, err := app.repositories.Roasters.GetAll()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -94,7 +94,7 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 	}
 
 	// case valid
-	err = app.models.Roasters.Insert(roaster)
+	err = app.repositories.Roasters.Insert(roaster)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -115,7 +115,7 @@ func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roaster, err := app.models.Roasters.Get(id)
+	roaster, err := app.repositories.Roasters.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -142,7 +142,7 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	roaster, err := app.models.Roasters.Get(id)
+	roaster, err := app.repositories.Roasters.Get(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):
@@ -177,7 +177,7 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = app.models.Roasters.Update(roaster)
+	err = app.repositories.Roasters.Update(roaster)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrEditConflict):
@@ -203,7 +203,7 @@ func (app *application) roasterRemove(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = app.models.Roasters.Delete(id)
+	err = app.repositories.Roasters.Delete(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

@@ -36,7 +36,7 @@ type application struct {
 	config        config
 	formDecoder   *form.Decoder
 	logger        *slog.Logger
-	models        data.Models
+	repositories  data.Repositories
 	templateCache map[string]*template.Template
 	wg            sync.WaitGroup
 }
@@ -78,7 +78,7 @@ func main() {
 	lgr.Info("database connection pool established")
 
 	// initialize models by providing db conn pool
-	mdls := data.NewModels(db)
+	repos := data.NewRepositories(db)
 
 	// initialize template cache
 	tmpls, err := newTemplateCache()
@@ -95,7 +95,7 @@ func main() {
 		config:        cfg,
 		formDecoder:   fdcdr,
 		logger:        lgr,
-		models:        mdls,
+		repositories:  repos,
 		templateCache: tmpls,
 	}
 
