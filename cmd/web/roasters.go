@@ -24,7 +24,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// read roaster from db
-	roaster, err := app.repositories.Roasters.Get(id)
+	roaster, err := app.repositories.Roasters.GetFull(id)
 	if err != nil {
 		switch {
 		case errors.Is(err, data.ErrRecordNotFound):

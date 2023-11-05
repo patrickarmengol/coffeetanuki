@@ -11,6 +11,10 @@
         <p>location: {{.Location}}</p>
         <p>created_at: {{.CreatedAt}}</p>
         <p>version: {{.Version}}</p>
+
+        {{range .Beans}}
+        <p>bean {{.ID}}: {{.Name}}</p>
+        {{end}}
     </div>
 </section>
 {{end}}
