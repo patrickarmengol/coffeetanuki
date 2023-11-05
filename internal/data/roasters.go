@@ -15,6 +15,7 @@ type Roaster struct {
 	Description string
 	Website     string
 	Location    string
+	Beans       []*Bean
 	CreatedAt   time.Time
 	Version     int
 }
@@ -57,9 +58,10 @@ func (m RoasterModel) Get(id int64) (*Roaster, error) {
 	}
 
 	stmt := `
-	SELECT id, name, description, website, location, created_at, version
-	FROM roasters
-	WHERE id = $1
+	SELECT r.*, b.*
+	FROM roasters r
+	JOIN beans b ON r.id = b.roaster_id
+	WHERE r.id = $1
 	`
 
 	args := []any{id}
@@ -67,15 +69,43 @@ func (m RoasterModel) Get(id int64) (*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	var roaster Roaster
-	err := m.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.Name, &roaster.Description, &roaster.Website, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
+	rows, err := m.DB.QueryContext(ctx, stmt, args...)
 	if err != nil {
-		switch {
-		case errors.Is(err, sql.ErrNoRows):
-			return nil, ErrRecordNotFound
-		default:
+		return nil, err
+	}
+	defer rows.Close()
+
+	var roaster Roaster
+
+	for rows.Next() {
+		var bean Bean
+		// this seems very error prone
+		// also why am i scanning into roaster each row if it's always the same
+		err := rows.Scan(
+			&roaster.ID,
+			&roaster.Name,
+			&roaster.Description,
+			&roaster.Website,
+			&roaster.Location,
+			&roaster.CreatedAt,
+			&roaster.Version,
+			&bean.ID,
+			&bean.Name,
+			&bean.RoastLevel,
+			&bean.RoasterID,
+			&bean.CreatedAt,
+			&bean.Version,
+		)
+		if err != nil {
 			return nil, err
 		}
+
+		if bean.ID != 0 {
+			roaster.Beans = append(roaster.Beans, &bean)
+		}
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
 	}
 
 	return &roaster, nil
@@ -83,8 +113,9 @@ func (m RoasterModel) Get(id int64) (*Roaster, error) {
 
 func (m RoasterModel) GetAll() ([]*Roaster, error) {
 	stmt := `
-	SELECT id, name, description, website, location, created_at, version
-	FROM roasters
+	SELECT r.*, b.*
+	FROM roasters r
+	JOIN beans b
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -96,21 +127,51 @@ func (m RoasterModel) GetAll() ([]*Roaster, error) {
 	}
 	defer rows.Close()
 
-	roasters := []*Roaster{}
+	roastersMap := make(map[int64]Roaster)
+
 	for rows.Next() {
 		var roaster Roaster
+		var bean Bean
 
-		err := rows.Scan(&roaster.ID, &roaster.Name, &roaster.Description, &roaster.Website, &roaster.Location, &roaster.CreatedAt, &roaster.Version)
+		err := rows.Scan(
+			&roaster.ID,
+			&roaster.Name,
+			&roaster.Description,
+			&roaster.Website,
+			&roaster.Location,
+			&roaster.CreatedAt,
+			&roaster.Version,
+			&bean.ID,
+			&bean.Name,
+			&bean.RoastLevel,
+			&bean.RoasterID,
+			&bean.CreatedAt,
+			&bean.Version,
+		)
 		if err != nil {
 			return nil, err
 		}
 
-		roasters = append(roasters, &roaster)
+		rr, ok := roastersMap[roaster.ID]
+		if !ok {
+			rr = roaster
+		}
+
+		if bean.ID != 0 {
+			rr.Beans = append(rr.Beans, &bean)
+		}
+
+		roastersMap[roaster.ID] = rr
+
 	}
 	if err = rows.Err(); err != nil {
 		return nil, err
 	}
 
+	roasters := make([]*Roaster, 0, len(roastersMap))
+	for _, r := range roastersMap {
+		roasters = append(roasters, &r)
+	}
 	return roasters, nil
 }
 
