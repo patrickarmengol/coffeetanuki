@@ -58,6 +58,44 @@ func (rep RoasterRepository) Get(id int64) (*Roaster, error) {
 	}
 
 	stmt := `
+	SELECT *
+	FROM roasters
+	WHERE id = $1
+	`
+
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var roaster Roaster
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(
+		&roaster.ID,
+		&roaster.Name,
+		&roaster.Description,
+		&roaster.Website,
+		&roaster.Location,
+		&roaster.CreatedAt,
+		&roaster.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &roaster, nil
+}
+
+func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
+	if id < 1 {
+		return nil, ErrRecordNotFound
+	}
+
+	stmt := `
 	SELECT r.*, b.*
 	FROM roasters r
 	JOIN beans b ON r.id = b.roaster_id
@@ -112,6 +150,48 @@ func (rep RoasterRepository) Get(id int64) (*Roaster, error) {
 }
 
 func (rep RoasterRepository) GetAll() ([]*Roaster, error) {
+	stmt := `
+	SELECT *
+	FROM roasters
+	`
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := rep.DB.QueryContext(ctx, stmt)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roasters := []*Roaster{}
+
+	for rows.Next() {
+		var roaster Roaster
+
+		err := rows.Scan(
+			&roaster.ID,
+			&roaster.Name,
+			&roaster.Description,
+			&roaster.Website,
+			&roaster.Location,
+			&roaster.CreatedAt,
+			&roaster.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		roasters = append(roasters, &roaster)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return roasters, nil
+}
+
+func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	stmt := `
 	SELECT r.*, b.*
 	FROM roasters r
