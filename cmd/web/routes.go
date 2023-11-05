@@ -22,6 +22,7 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/roasters/new", app.roasterCreate, http.MethodGet)
 	mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
 	mux.HandleFunc("/roasters/:id/edit", app.roasterEdit, http.MethodGet)
+	mux.HandleFunc("/beans", app.beanList, http.MethodGet)
 	mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
 
 	// roaster htmx

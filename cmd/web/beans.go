@@ -48,3 +48,16 @@ func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 
 	app.render(w, r, http.StatusOK, "beanview.gohtml", "base", td)
 }
+
+func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
+	beans, err := app.repositories.Beans.GetAll()
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+
+	td := newTemplateData(r)
+	td.Beans = beans
+
+	app.render(w, r, http.StatusOK, "beanlist.gohtml", "base", td)
+}
