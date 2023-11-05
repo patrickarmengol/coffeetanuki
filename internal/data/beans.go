@@ -107,7 +107,7 @@ func (rep BeanRepository) Get(id int64) (*Bean, error) {
 func (rep BeanRepository) GetAll() ([]*Bean, error) {
 	stmt := `
 	SELECT id, name, roast_level, roaster_id, created_at, version
-	FROM roasters
+	FROM beans
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
