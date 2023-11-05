@@ -14,6 +14,8 @@ import (
 )
 
 type templateData struct {
+	Bean      *data.Bean
+	Beans     []*data.Bean
 	Roaster   *data.Roaster
 	Roasters  []*data.Roaster
 	Validator *validator.Validator
