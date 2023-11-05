@@ -21,6 +21,15 @@ type Bean struct {
 	Version    int
 }
 
+type NullableBean struct {
+	ID         sql.NullInt64
+	Name       sql.NullString
+	RoastLevel sql.NullString
+	RoasterID  sql.NullInt64
+	CreatedAt  sql.NullTime
+	Version    sql.NullInt32
+}
+
 type BeanRepository struct {
 	DB *sql.DB
 }
@@ -31,6 +40,19 @@ func (b *Bean) Validate(v *validator.Validator) {
 	v.CheckField(validator.NotBlank(b.Name), "name", "This field cannot be blank")
 	v.CheckField(validator.NotBlank(b.RoastLevel), "roast_level", "This field cannot be blank")
 	v.CheckField(validator.PermittedValue(b.RoastLevel, roastLevels...), "roast_level", fmt.Sprintf("This field must be one of %v", roastLevels))
+}
+
+// helpers
+
+func (nb NullableBean) UnNullify() Bean {
+	return Bean{
+		ID:         nb.ID.Int64,
+		Name:       nb.Name.String,
+		RoastLevel: nb.RoastLevel.String,
+		RoasterID:  nb.RoasterID.Int64,
+		CreatedAt:  nb.CreatedAt.Time,
+		Version:    int(nb.Version.Int32),
+	}
 }
 
 // create

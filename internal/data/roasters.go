@@ -98,7 +98,7 @@ func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
 	stmt := `
 	SELECT r.*, b.*
 	FROM roasters r
-	JOIN beans b ON r.id = b.roaster_id
+	LEFT JOIN beans b ON r.id = b.roaster_id
 	WHERE r.id = $1
 	`
 
@@ -116,9 +116,8 @@ func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
 	var roaster Roaster
 
 	for rows.Next() {
-		var bean Bean
-		// this seems very error prone
-		// also why am i scanning into roaster each row if it's always the same
+		var nbean NullableBean
+
 		err := rows.Scan(
 			&roaster.ID,
 			&roaster.Name,
@@ -127,18 +126,19 @@ func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
 			&roaster.Location,
 			&roaster.CreatedAt,
 			&roaster.Version,
-			&bean.ID,
-			&bean.Name,
-			&bean.RoastLevel,
-			&bean.RoasterID,
-			&bean.CreatedAt,
-			&bean.Version,
+			&nbean.ID,
+			&nbean.Name,
+			&nbean.RoastLevel,
+			&nbean.RoasterID,
+			&nbean.CreatedAt,
+			&nbean.Version,
 		)
 		if err != nil {
 			return nil, err
 		}
 
-		if bean.ID != 0 {
+		if nbean.ID.Valid {
+			bean := nbean.UnNullify()
 			roaster.Beans = append(roaster.Beans, &bean)
 		}
 	}
@@ -195,7 +195,7 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	stmt := `
 	SELECT r.*, b.*
 	FROM roasters r
-	JOIN beans b
+	LEFT JOIN beans b
 	`
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
@@ -211,7 +211,7 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 
 	for rows.Next() {
 		var roaster Roaster
-		var bean Bean
+		var nbean NullableBean
 
 		err := rows.Scan(
 			&roaster.ID,
@@ -221,12 +221,12 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 			&roaster.Location,
 			&roaster.CreatedAt,
 			&roaster.Version,
-			&bean.ID,
-			&bean.Name,
-			&bean.RoastLevel,
-			&bean.RoasterID,
-			&bean.CreatedAt,
-			&bean.Version,
+			&nbean.ID,
+			&nbean.Name,
+			&nbean.RoastLevel,
+			&nbean.RoasterID,
+			&nbean.CreatedAt,
+			&nbean.Version,
 		)
 		if err != nil {
 			return nil, err
@@ -237,7 +237,8 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 			rr = roaster
 		}
 
-		if bean.ID != 0 {
+		if nbean.ID.Valid {
+			bean := nbean.UnNullify()
 			rr.Beans = append(rr.Beans, &bean)
 		}
 
