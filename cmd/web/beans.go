@@ -219,3 +219,24 @@ func (app *application) beanEditPatch(w http.ResponseWriter, r *http.Request) {
 	td.Result = true
 	app.render(w, r, http.StatusOK, "beanedit.gohtml", "form", td)
 }
+
+func (app *application) beanRemove(w http.ResponseWriter, r *http.Request) {
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	err = app.repositories.Beans.Delete(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// 200 ok default response
+}
