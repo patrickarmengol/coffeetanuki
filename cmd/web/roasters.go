@@ -16,6 +16,8 @@ type roasterForm struct {
 }
 
 func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
 	// parse `id` path parameter
 	id, err := app.readIDParam(r)
 	if err != nil {
@@ -34,36 +36,39 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	// render template response
-	td := newTemplateData(r)
 	td.Roaster = roaster
 
+	// render template response
 	app.render(w, r, http.StatusOK, "roasterview.gohtml", "base", td)
 }
 
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read roasters from db
 	roasters, err := app.repositories.Roasters.GetAll()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	td := newTemplateData(r)
 	td.Roasters = roasters
 
+	// render template response
 	app.render(w, r, http.StatusOK, "roasterlist.gohtml", "base", td)
 }
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData(r)
+	td := newTemplateData()
+
+	// render form with empty model
 	td.Validator = validator.New()
 	td.Roaster = &data.Roaster{}
-
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
 }
 
 func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
 	// parse and decode form
 	var form roasterForm
 	err := app.decodePostForm(r, &form)
@@ -79,16 +84,15 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 		Website:     form.Website,
 		Location:    form.Location,
 	}
+	td.Roaster = roaster
 
 	// validate
 	v := validator.New()
+	td.Validator = v
 	roaster.Validate(v)
 
-	// case invalid
+	// case invalid - respond with FieldErrors
 	if !v.Valid() {
-		td := newTemplateData(r)
-		td.Validator = v
-		td.Roaster = roaster
 		app.render(w, r, http.StatusUnprocessableEntity, "roastercreate.gohtml", "form", td)
 		return
 	}
@@ -101,20 +105,21 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 	}
 
 	// display success message
-	td := newTemplateData(r)
-	td.Validator = v
-	td.Roaster = roaster
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }
 
 func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.badRequestResponse(w)
 		return
 	}
 
+	// read roaster from db
 	roaster, err := app.repositories.Roasters.Get(id)
 	if err != nil {
 		switch {
@@ -125,23 +130,27 @@ func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	v := validator.New()
-
-	td := newTemplateData(r)
-	td.Validator = v
 	td.Roaster = roaster
 
+	// bogus validator for template
+	v := validator.New()
+	td.Validator = v
+
+	// render empty form
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "base", td)
 }
 
 func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.badRequestResponse(w)
 		return
 	}
 
+	// read roaster from db
 	roaster, err := app.repositories.Roasters.Get(id)
 	if err != nil {
 		switch {
@@ -152,7 +161,9 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 		}
 		return
 	}
+	td.Roaster = roaster
 
+	// decode input form
 	var form roasterForm
 	err = app.decodePostForm(r, &form)
 	if err != nil {
@@ -160,23 +171,24 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// pass into model
+	// pass form changes into model
 	roaster.Name = form.Name
 	roaster.Description = form.Description
 	roaster.Website = form.Website
 	roaster.Location = form.Location
 
+	// validate
 	v := validator.New()
+	td.Validator = v
 	roaster.Validate(v)
 
+	// case invalid - respond with FieldErrors
 	if !v.Valid() {
-		td := newTemplateData(r)
-		td.Validator = v
-		td.Roaster = roaster
 		app.render(w, r, http.StatusUnprocessableEntity, "roasteredit.gohtml", "form", td)
 		return
 	}
 
+	// case valid - update roaster
 	err = app.repositories.Roasters.Update(roaster)
 	if err != nil {
 		switch {
@@ -188,10 +200,7 @@ func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	// display success message
-	td := newTemplateData(r)
-	td.Validator = v
-	td.Roaster = roaster
+	// display success
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "form", td)
 }
