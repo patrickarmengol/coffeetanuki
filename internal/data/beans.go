@@ -69,7 +69,17 @@ func (rep BeanRepository) Insert(bean *Bean) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
+	if err != nil {
+		switch {
+		case err.Error() == `pq: insert or update on table "beans" violates foreign key constraint "beans_roaster_id_fkey"`:
+			return ErrInvalidRoasterID
+		default:
+			return err
+		}
+	}
+
+	return nil
 }
 
 // read
@@ -191,6 +201,8 @@ func (rep BeanRepository) Update(bean *Bean) error {
 	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.Version)
 	if err != nil {
 		switch {
+		case err.Error() == `pq: insert or update on table "beans" violates foreign key constraint "beans_roaster_id_fkey"`:
+			return ErrInvalidRoasterID
 		case errors.Is(err, sql.ErrNoRows):
 			return ErrEditConflict
 		default:
