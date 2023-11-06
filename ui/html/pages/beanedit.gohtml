@@ -1,0 +1,42 @@
+{{define "title"}}Edit Bean #{{.Bean.ID}}{{end}}
+
+{{define "main"}}
+<section class='section'>
+    <div class='container'>
+        <div id='htmx-error' hidden></div>
+        {{block "form" .}}
+        <form hx-patch='/beans/{{.Bean.ID}}' hx-target='this' hx-swap='outerHTML'>
+            <div>
+                <label for='name'>Name:</label>
+                {{with .Validator.FieldErrors.name}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='name' name='name' value='{{.Bean.Name}}' required />
+            </div>
+            <div>
+                <label for='roast_level'>Roast Level:</label>
+                {{with .Validator.FieldErrors.roast_level}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='roast_level' name='roast_level' value='{{.Bean.RoastLevel}}' required />
+            </div>
+            <div>
+                <label for='roaster_id'>Roaster ID:</label>
+                {{with .Validator.FieldErrors.roaster_id}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='roaster_id' name='roaster_id' value='{{.Bean.RoasterID}}' required />
+            </div>
+            <div>
+                <button type='submit'>Submit</button>
+            </div>
+            <div>
+                {{if .Result}}
+                Bean successfully edited: <a href='/beans/{{.Bean.ID}}'>{{.Bean.Name}}</a>
+                {{end}}
+            </div>
+        </form>
+        {{end}}
+    </div>
+</section>
+{{end}}

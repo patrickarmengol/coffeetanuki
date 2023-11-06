@@ -32,9 +32,11 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/beans", app.beanList, http.MethodGet)
 	mux.HandleFunc("/beans/new", app.beanCreate, http.MethodGet)
 	mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
+	mux.HandleFunc("/beans/:id/edit", app.beanEdit, http.MethodGet)
 
 	// bean htmx
 	mux.HandleFunc("/beans", app.beanCreatePost, http.MethodPost)
+	mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
 
 	return mux
 }

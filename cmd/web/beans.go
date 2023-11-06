@@ -121,3 +121,101 @@ func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 	td.Result = true
 	app.render(w, r, http.StatusOK, "beancreate.gohtml", "form", td)
 }
+
+func (app *application) beanEdit(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read id from path
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// read bean from db
+	bean, err := app.repositories.Beans.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	td.Bean = bean
+
+	// bogus validator for template
+	v := validator.New()
+	td.Validator = v
+
+	// render empty form
+	app.render(w, r, http.StatusOK, "beanedit.gohtml", "base", td)
+}
+
+func (app *application) beanEditPatch(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read id from path
+	id, err := app.readIDParam(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// read roaster from db
+	bean, err := app.repositories.Beans.Get(id)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrRecordNotFound):
+			app.notFoundResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+	td.Bean = bean
+
+	// decode input form
+	var form beanForm
+	err = app.decodePostForm(r, &form)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// pass form changes into model
+	bean.Name = form.Name
+	bean.RoastLevel = form.RoastLevel
+	bean.RoasterID = form.RoasterID
+
+	// validate
+	v := validator.New()
+	td.Validator = v
+	bean.Validate(v)
+
+	// case invalid - respond with FieldErrors
+	if !v.Valid() {
+		app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
+		return
+	}
+
+	// case valid - update roaster
+	err = app.repositories.Beans.Update(bean)
+	if err != nil {
+		switch {
+		case errors.Is(err, data.ErrInvalidRoasterID):
+			v.AddFieldError("roaster_id", "roaster id does not exist")
+			app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
+		case errors.Is(err, data.ErrEditConflict):
+			app.editConflictResponse(w)
+		default:
+			app.serverErrorResponse(w, r, err)
+		}
+		return
+	}
+
+	// display success
+	td.Result = true
+	app.render(w, r, http.StatusOK, "beanedit.gohtml", "form", td)
+}
