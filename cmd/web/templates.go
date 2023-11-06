@@ -24,7 +24,7 @@ type templateData struct {
 
 var functions = template.FuncMap{}
 
-func newTemplateData(r *http.Request) *templateData {
+func newTemplateData() *templateData {
 	return &templateData{}
 }
 
