@@ -24,7 +24,9 @@ type beanForm struct {
 }
 
 func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
-	// parse `id` path parameter
+	td := newTemplateData()
+
+	// parse id path param
 	id, err := app.readIDParam(r)
 	if err != nil {
 		app.badRequestResponse(w)
@@ -42,36 +44,39 @@ func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 		}
 		return
 	}
-
-	// render template response
-	td := newTemplateData()
 	td.Bean = bean
 
+	// render template response
 	app.render(w, r, http.StatusOK, "beanview.gohtml", "base", td)
 }
 
 func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
+	// read all beans from db
 	beans, err := app.repositories.Beans.GetAll()
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
-
-	td := newTemplateData()
 	td.Beans = beans
 
+	// render template response
 	app.render(w, r, http.StatusOK, "beanlist.gohtml", "base", td)
 }
 
 func (app *application) beanCreate(w http.ResponseWriter, r *http.Request) {
 	td := newTemplateData()
+
+	// render form with empty model
 	td.Validator = validator.New()
 	td.Bean = &data.Bean{}
-
 	app.render(w, r, http.StatusOK, "beancreate.gohtml", "base", td)
 }
 
 func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
+	td := newTemplateData()
+
 	// parse and decode form
 	var form beanForm
 	err := app.decodePostForm(r, &form)
@@ -86,16 +91,15 @@ func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 		RoastLevel: form.RoastLevel,
 		RoasterID:  form.RoasterID,
 	}
+	td.Bean = bean
 
 	// validate
 	v := validator.New()
+	td.Validator = v
 	bean.Validate(v)
 
 	// invalid form input
 	if !v.Valid() {
-		td := newTemplateData()
-		td.Validator = v
-		td.Bean = bean
 		app.render(w, r, http.StatusUnprocessableEntity, "beancreate.gohtml", "form", td)
 		return
 	}
@@ -106,9 +110,6 @@ func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 		switch {
 		case errors.Is(err, data.ErrInvalidRoasterID):
 			v.AddFieldError("roaster_id", "roaster id does not exist")
-			td := newTemplateData()
-			td.Validator = v
-			td.Bean = bean
 			app.render(w, r, http.StatusUnprocessableEntity, "beancreate.gohtml", "form", td)
 		default:
 			app.serverErrorResponse(w, r, err)
@@ -117,9 +118,6 @@ func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// display success message
-	td := newTemplateData()
-	td.Validator = v
-	td.Bean = bean
 	td.Result = true
 	app.render(w, r, http.StatusOK, "beancreate.gohtml", "form", td)
 }
