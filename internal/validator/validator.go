@@ -8,7 +8,10 @@ import (
 	"unicode/utf8"
 )
 
-var LocationRX = regexp.MustCompile(`^([A-Za-z\s.'-]+, )+[A-Za-z\s.'-]+$`)
+var (
+	LocationRX = regexp.MustCompile(`^([A-Za-z\s.'-]+, )+[A-Za-z\s.'-]+$`)
+	EmailRX    = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
+)
 
 type Validator struct {
 	NonFieldErrors []string
@@ -61,6 +64,14 @@ func MaxChars(value string, n int) bool {
 
 func MinChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) >= n
+}
+
+func MaxBytes(value string, n int) bool {
+	return len(value) <= n
+}
+
+func MinBytes(value string, n int) bool {
+	return len(value) >= n
 }
 
 func PermittedValue[T comparable](value T, permittedValues ...T) bool {
