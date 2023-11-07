@@ -10,6 +10,8 @@ import (
 	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
+var ErrInvalidRoasterID = errors.New("invalid roaster id")
+
 var roastLevels = []string{"light", "medium-light", "medium", "medium-dark", "dark"}
 
 type Bean struct {
