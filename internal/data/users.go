@@ -61,7 +61,7 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 
 // validate
 
-func (u *User) Validate(v validator.Validator) {
+func (u *User) Validate(v *validator.Validator) {
 	// name
 	v.CheckField(validator.NotBlank(u.Name), "name", "must be provided")
 	v.CheckField(validator.MaxBytes(u.Name, 500), "name", "must not be more than 500 bytes long")
