@@ -9,6 +9,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/alexedwards/scs/postgresstore"
+	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/patrickarmengol/coffeetanuki/internal/data"
 	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
@@ -33,12 +35,13 @@ type config struct {
 }
 
 type application struct {
-	config        config
-	formDecoder   *form.Decoder
-	logger        *slog.Logger
-	repositories  data.Repositories
-	templateCache map[string]*template.Template
-	wg            sync.WaitGroup
+	config         config
+	formDecoder    *form.Decoder
+	logger         *slog.Logger
+	repositories   data.Repositories
+	sessionManager *scs.SessionManager
+	templateCache  map[string]*template.Template
+	wg             sync.WaitGroup
 }
 
 func main() {
@@ -90,13 +93,18 @@ func main() {
 	// initialize form decoder
 	fdcdr := form.NewDecoder()
 
+	// initialize session management
+	smgr := scs.New()
+	smgr.Store = postgresstore.New(db)
+
 	// construct application
 	app := &application{
-		config:        cfg,
-		formDecoder:   fdcdr,
-		logger:        lgr,
-		repositories:  repos,
-		templateCache: tmpls,
+		config:         cfg,
+		formDecoder:    fdcdr,
+		logger:         lgr,
+		repositories:   repos,
+		sessionManager: smgr,
+		templateCache:  tmpls,
 	}
 
 	// start service
