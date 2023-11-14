@@ -14,6 +14,9 @@ func (app *application) routes() http.Handler {
 	fileServer := http.FileServer(http.FS(ui.Files))
 	mux.Handle("/static/...", fileServer, http.MethodGet)
 
+	// use session management for dynamic content
+	mux.Use(app.sessionManager.LoadAndSave)
+
 	// home
 	mux.HandleFunc("/", app.home, http.MethodGet)
 
