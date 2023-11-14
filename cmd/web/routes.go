@@ -39,5 +39,11 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
 	mux.HandleFunc("/beans/:id", app.beanRemove, http.MethodDelete)
 
+	// user pages
+	mux.HandleFunc("/user/signup", app.userSignup, http.MethodGet)
+
+	// user htmx
+	mux.HandleFunc("/user/signup", app.userSignupPost, http.MethodPost)
+
 	return mux
 }

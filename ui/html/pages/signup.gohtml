@@ -1,0 +1,37 @@
+{{define "title"}}Sign Up{{end}}
+
+{{define "main"}}
+<section class='section'>
+    <div class='container'>
+        <div id='htmx-error' hidden></div>
+        {{block "form" .}}
+        <form hx-post='/user/signup' hx-target='this' hx-swap='outerHTML'>
+            <div>
+                <label for='name'>Username:</label>
+                {{with .Validator.FieldErrors.name}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='text' id='name' name='name' value='{{if not .Result}}{{.User.Name}}{{end}}' required />
+            </div>
+            <div>
+                <label for='email'>Email Address:</label>
+                {{with .Validator.FieldErrors.email}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='email' id='email' name='email' value='{{if not .Result}}{{.User.Email}}{{end}}' required />
+            </div>
+            <div>
+                <label for='password'>Password:</label>
+                {{with .Validator.FieldErrors.password}}
+                <label class='error'>{{.}}</label>
+                {{end}}
+                <input type='password' id='password' name='password' value='' required />
+            </div>
+            <div>
+                <button type='submit'>Submit</button>
+            </div>
+        </form>
+        {{end}}
+    </div>
+</section>
+{{end}}
