@@ -44,9 +44,11 @@ func (app *application) routes() http.Handler {
 
 	// user pages
 	mux.HandleFunc("/user/signup", app.userSignup, http.MethodGet)
+	mux.HandleFunc("/user/login", app.userLogin, http.MethodGet)
 
 	// user htmx
 	mux.HandleFunc("/user/signup", app.userSignupPost, http.MethodPost)
+	mux.HandleFunc("/user/login", app.userLoginPost, http.MethodPost)
 
 	return mux
 }

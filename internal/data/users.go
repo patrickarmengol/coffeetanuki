@@ -61,20 +61,28 @@ func (p *password) Matches(plaintextPassword string) (bool, error) {
 
 // validate
 
+func ValidateEmail(v *validator.Validator, email string) {
+	v.CheckField(validator.NotBlank(email), "email", "must be provided")
+	v.CheckField(validator.Matches(email, validator.EmailRX), "email", "must be a valid email address")
+}
+
+func ValidatePasswordPlaintext(v *validator.Validator, password string) {
+	v.CheckField(validator.NotBlank(password), "password", "must be provided")
+	v.CheckField(validator.MinBytes(password, 8), "password", "must be at least 8 bytes long")
+	v.CheckField(validator.MaxBytes(password, 72), "password", "must be no more than 72 bytes long")
+}
+
 func (u *User) Validate(v *validator.Validator) {
 	// name
 	v.CheckField(validator.NotBlank(u.Name), "name", "must be provided")
 	v.CheckField(validator.MaxBytes(u.Name, 500), "name", "must not be more than 500 bytes long")
 
 	// email
-	v.CheckField(validator.NotBlank(u.Email), "email", "must be provided")
-	v.CheckField(validator.Matches(u.Email, validator.EmailRX), "email", "must be a valid email address")
+	ValidateEmail(v, u.Email)
 
 	// password
 	if u.Password.plaintext != nil {
-		v.CheckField(validator.NotBlank(*u.Password.plaintext), "password", "must be provided")
-		v.CheckField(validator.MinBytes(*u.Password.plaintext, 8), "password", "must be at least 8 bytes long")
-		v.CheckField(validator.MaxBytes(*u.Password.plaintext, 72), "password", "must be no more than 72 bytes long")
+		ValidatePasswordPlaintext(v, *u.Password.plaintext)
 	}
 
 	if u.Password.hash == nil {
