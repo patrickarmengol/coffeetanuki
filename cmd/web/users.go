@@ -76,7 +76,12 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// TODO: set permissions for user
+	// set permissions for user
+	err = app.repositories.Permissions.AddForUser(user.ID, "beans:read", "roasters:read")
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
 
 	// TODO: create registration token for user
 
