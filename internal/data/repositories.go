@@ -11,15 +11,17 @@ var (
 )
 
 type Repositories struct {
-	Roasters RoasterRepository
-	Beans    BeanRepository
-	Users    UserRepository
+	Beans       BeanRepository
+	Permissions PermissionRepository
+	Roasters    RoasterRepository
+	Users       UserRepository
 }
 
 func NewRepositories(db *sql.DB) Repositories {
 	return Repositories{
-		Roasters: RoasterRepository{DB: db},
-		Beans:    BeanRepository{DB: db},
-		Users:    UserRepository{DB: db},
+		Beans:       BeanRepository{DB: db},
+		Permissions: PermissionRepository{DB: db},
+		Roasters:    RoasterRepository{DB: db},
+		Users:       UserRepository{DB: db},
 	}
 }
