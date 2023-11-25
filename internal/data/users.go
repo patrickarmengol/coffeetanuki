@@ -115,6 +115,54 @@ func (rep *UserRepository) Insert(user *User) error {
 	return nil
 }
 
+func (rep *UserRepository) Exists(id int) (bool, error) {
+	stmt := `
+	SELECT EXISTS(SELECT true FROM users WHERE id = $1)
+	`
+
+	args := []any{id}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	var exists bool
+	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&exists)
+	return exists, err
+}
+
+func (rep *UserRepository) Get(id int) (*User, error) {
+	stmt := `
+	SELECT id, name, email, password_hash, activated, created_at, version
+	FROM users
+	WHERE id = $1
+	`
+
+	var user User
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	err := rep.DB.QueryRowContext(ctx, stmt, id).Scan(
+		&user.ID,
+		&user.Name,
+		&user.Email,
+		&user.Password.hash,
+		&user.Activated,
+		&user.CreatedAt,
+		&user.Version,
+	)
+	if err != nil {
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return nil, ErrRecordNotFound
+		default:
+			return nil, err
+		}
+	}
+
+	return &user, nil
+}
+
 func (rep *UserRepository) GetByEmail(email string) (*User, error) {
 	stmt := `
 	SELECT id, name, email, password_hash, activated, created_at, version
