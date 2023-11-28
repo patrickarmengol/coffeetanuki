@@ -3,5 +3,6 @@ package main
 import "net/http"
 
 func (app *application) home(w http.ResponseWriter, r *http.Request) {
-	app.render(w, r, http.StatusOK, "home.gohtml", "base", nil)
+	td := newTemplateData()
+	app.render(w, r, http.StatusOK, "home.gohtml", "base", td)
 }
