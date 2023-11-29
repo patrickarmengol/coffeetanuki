@@ -38,3 +38,8 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 
 	return nil
 }
+
+func (app *application) isAuthenticated(r *http.Request) bool {
+	user := app.contextGetUser(r)
+	return !user.IsAnonymous()
+}
