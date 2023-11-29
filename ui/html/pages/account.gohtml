@@ -1,0 +1,16 @@
+{{define "title"}}Account - {{.User.Name}}{{end}}
+
+{{define "main"}}
+{{with .User}}
+<section class='section'>
+    <div class='container content'>
+        <h1>User Details: {{.Name}}</h1>
+        <p>id: {{.ID}}</p>
+        <p>email: {{.Email}}</p>
+        <p>activated: {{.Activated}}</p>
+        <p>created_at: {{.CreatedAt}}</p>
+        <p>version: {{.Version}}</p>
+    </div>
+</section>
+{{end}}
+{{end}}

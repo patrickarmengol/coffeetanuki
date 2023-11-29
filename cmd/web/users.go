@@ -181,3 +181,17 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("HX-Redirect", "/")
 	w.Write([]byte("successfully logged out; redirecting to home"))
 }
+
+func (app *application) userAccountView(w http.ResponseWriter, r *http.Request) {
+	user := app.contextGetUser(r)
+
+	if user.IsAnonymous() {
+		app.authenticationRequiredResponse(w)
+		return
+	}
+
+	td := app.newTemplateData(r)
+	td.User = user
+
+	app.render(w, r, http.StatusOK, "account.gohtml", "base", td)
+}
