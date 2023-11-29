@@ -17,6 +17,9 @@ func (app *application) routes() http.Handler {
 	// use session management for dynamic content
 	mux.Use(app.sessionManager.LoadAndSave)
 
+	// use authentication
+	mux.Use(app.authenticate)
+
 	// home
 	mux.HandleFunc("/", app.home, http.MethodGet)
 
