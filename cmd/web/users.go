@@ -165,3 +165,18 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("HX-Redirect", "/")
 	w.Write([]byte("successfully logged in; redirecting to home"))
 }
+
+func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
+	// change the session token
+	err := app.sessionManager.RenewToken(r.Context())
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+	}
+
+	// remove user id from session
+	app.sessionManager.Remove(r.Context(), "authenticatedUserID")
+
+	// redirect to home
+	w.Header().Add("HX-Redirect", "/")
+	w.Write([]byte("successfully logged out; redirecting to home"))
+}
