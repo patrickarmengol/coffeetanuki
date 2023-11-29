@@ -16,7 +16,7 @@ type roasterForm struct {
 }
 
 func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse `id` path parameter
 	id, err := app.readIDParam(r)
@@ -43,7 +43,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read roasters from db
 	roasters, err := app.repositories.Roasters.GetAll()
@@ -58,7 +58,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// render form with empty model
 	td.Validator = validator.New()
@@ -67,7 +67,7 @@ func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse and decode form
 	var form roasterForm
@@ -110,7 +110,7 @@ func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request
 }
 
 func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
@@ -141,7 +141,7 @@ func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)

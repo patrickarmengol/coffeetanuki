@@ -14,19 +14,22 @@ import (
 )
 
 type templateData struct {
-	Bean      *data.Bean
-	Beans     []*data.Bean
-	Roaster   *data.Roaster
-	Roasters  []*data.Roaster
-	User      *data.User
-	Validator *validator.Validator
-	Result    bool
+	Bean            *data.Bean
+	Beans           []*data.Bean
+	Roaster         *data.Roaster
+	Roasters        []*data.Roaster
+	User            *data.User
+	Validator       *validator.Validator
+	Result          bool
+	IsAuthenticated bool
 }
 
 var functions = template.FuncMap{}
 
-func newTemplateData() *templateData {
-	return &templateData{}
+func (app *application) newTemplateData(r *http.Request) *templateData {
+	return &templateData{
+		IsAuthenticated: app.isAuthenticated(r),
+	}
 }
 
 func newTemplateCache() (map[string]*template.Template, error) {

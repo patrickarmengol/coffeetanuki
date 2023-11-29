@@ -20,7 +20,7 @@ type userLoginForm struct {
 }
 
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// render form with empty model
 	td.Validator = validator.New()
@@ -29,7 +29,7 @@ func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse and decode form
 	var form userSignupForm
@@ -91,7 +91,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// render form with empty model
 	td.Validator = validator.New()
@@ -100,7 +100,7 @@ func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse and decode form
 	var form userLoginForm

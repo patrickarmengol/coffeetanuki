@@ -24,7 +24,7 @@ type beanForm struct {
 }
 
 func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse id path param
 	id, err := app.readIDParam(r)
@@ -51,7 +51,7 @@ func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read all beans from db
 	beans, err := app.repositories.Beans.GetAll()
@@ -66,7 +66,7 @@ func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) beanCreate(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// render form with empty model
 	td.Validator = validator.New()
@@ -75,7 +75,7 @@ func (app *application) beanCreate(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// parse and decode form
 	var form beanForm
@@ -123,7 +123,7 @@ func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) beanEdit(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
@@ -154,7 +154,7 @@ func (app *application) beanEdit(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *application) beanEditPatch(w http.ResponseWriter, r *http.Request) {
-	td := newTemplateData()
+	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
