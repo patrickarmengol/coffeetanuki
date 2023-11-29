@@ -171,6 +171,7 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
+		return
 	}
 
 	// remove user id from session
