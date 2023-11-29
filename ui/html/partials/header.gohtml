@@ -22,6 +22,21 @@
                 <a class='navbar-item' href='/beans'>
                     Beans
                 </a>
+                {{if .IsAuthenticated}}
+                <a class='navbar-item' href='/account'>
+                    Account
+                </a>
+                <a class='navbar-item' hx-post='/user/logout'>
+                    Logout
+                </a>
+                {{else}}
+                <a class='navbar-item' href='/user/signup'>
+                    Signup
+                </a>
+                <a class='navbar-item' href='/user/login'>
+                    Login
+                </a>
+                {{end}}
             </div>
         </div>
     </div>
