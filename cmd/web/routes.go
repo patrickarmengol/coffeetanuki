@@ -23,27 +23,47 @@ func (app *application) routes() http.Handler {
 	// home
 	mux.HandleFunc("/", app.home, http.MethodGet)
 
-	// roaster pages
-	mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
-	mux.HandleFunc("/roasters/new", app.roasterCreate, http.MethodGet)
-	mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
-	mux.HandleFunc("/roasters/:id/edit", app.roasterEdit, http.MethodGet)
+	// roasters
+	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("roasters:read"))
 
-	// roaster htmx
-	mux.HandleFunc("/roasters", app.roasterCreatePost, http.MethodPost)
-	mux.HandleFunc("/roasters/:id", app.roasterEditPatch, http.MethodPatch)
-	mux.HandleFunc("/roasters/:id", app.roasterRemove, http.MethodDelete)
+		// pages
+		mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
+		mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
+	})
+	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("roasters:write"))
 
-	// bean pages
-	mux.HandleFunc("/beans", app.beanList, http.MethodGet)
-	mux.HandleFunc("/beans/new", app.beanCreate, http.MethodGet)
-	mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
-	mux.HandleFunc("/beans/:id/edit", app.beanEdit, http.MethodGet)
+		// pages
+		mux.HandleFunc("/roasters/new", app.roasterCreate, http.MethodGet)
+		mux.HandleFunc("/roasters/:id/edit", app.roasterEdit, http.MethodGet)
 
-	// bean htmx
-	mux.HandleFunc("/beans", app.beanCreatePost, http.MethodPost)
-	mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
-	mux.HandleFunc("/beans/:id", app.beanRemove, http.MethodDelete)
+		// htmx
+		mux.HandleFunc("/roasters", app.roasterCreatePost, http.MethodPost)
+		mux.HandleFunc("/roasters/:id", app.roasterEditPatch, http.MethodPatch)
+		mux.HandleFunc("/roasters/:id", app.roasterRemove, http.MethodDelete)
+	})
+
+	// beans
+	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("beans:read"))
+
+		// pages
+		mux.HandleFunc("/beans", app.beanList, http.MethodGet)
+		mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
+	})
+	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("beans:write"))
+
+		// pages
+		mux.HandleFunc("/beans/new", app.beanCreate, http.MethodGet)
+		mux.HandleFunc("/beans/:id/edit", app.beanEdit, http.MethodGet)
+
+		// htmx
+		mux.HandleFunc("/beans", app.beanCreatePost, http.MethodPost)
+		mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
+		mux.HandleFunc("/beans/:id", app.beanRemove, http.MethodDelete)
+	})
 
 	// user pages
 	mux.HandleFunc("/user/signup", app.userSignup, http.MethodGet)
