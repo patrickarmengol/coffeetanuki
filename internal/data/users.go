@@ -12,6 +12,8 @@ import (
 
 var ErrDuplicateEmail = errors.New("duplicate email")
 
+var AnonymousUser = &User{}
+
 type password struct {
 	plaintext *string // distinguish between "" and nil
 	hash      []byte
@@ -90,6 +92,10 @@ func (u *User) Validate(v *validator.Validator) {
 	}
 }
 
+func (u *User) IsAnonymous() bool {
+	return u == AnonymousUser
+}
+
 func (rep *UserRepository) Insert(user *User) error {
 	stmt := `
 	INSERT INTO users (name, email, password_hash, activated)
@@ -115,7 +121,7 @@ func (rep *UserRepository) Insert(user *User) error {
 	return nil
 }
 
-func (rep *UserRepository) Exists(id int) (bool, error) {
+func (rep *UserRepository) Exists(id int64) (bool, error) {
 	stmt := `
 	SELECT EXISTS(SELECT true FROM users WHERE id = $1)
 	`
@@ -130,7 +136,7 @@ func (rep *UserRepository) Exists(id int) (bool, error) {
 	return exists, err
 }
 
-func (rep *UserRepository) Get(id int) (*User, error) {
+func (rep *UserRepository) Get(id int64) (*User, error) {
 	stmt := `
 	SELECT id, name, email, password_hash, activated, created_at, version
 	FROM users
