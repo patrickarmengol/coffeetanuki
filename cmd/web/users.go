@@ -149,6 +149,7 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	if !match {
 		v.AddNonFieldError("email or password invalid")
 		app.render(w, r, http.StatusUnprocessableEntity, "login.gohtml", "form", td)
+		return
 	}
 
 	// change session token to avoid session fixation
