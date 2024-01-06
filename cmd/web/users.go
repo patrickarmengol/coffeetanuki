@@ -43,7 +43,7 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	user := &data.User{
 		Name:      form.Name,
 		Email:     form.Email,
-		Activated: false,
+		Activated: true, // TODO: change to false after email-confirm implemented
 	}
 	td.User = user
 	err = user.Password.Set(form.Password)
