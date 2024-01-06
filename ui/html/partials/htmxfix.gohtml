@@ -12,12 +12,13 @@ document.body.addEventListener('htmx:beforeSwap', function(evt) {
     }
 });
 document.body.addEventListener('htmx:afterRequest', function (evt) {
-    const errorTarget = document.getElementById("htmx-error")
     if (evt.detail.successful) {
+        const errorTarget = document.getElementById("htmx-error")
         // Successful request, clear out alert
         errorTarget.setAttribute("hidden", "true")
         errorTarget.innerText = "";
     } else if (evt.detail.failed && evt.detail.xhr) {
+        const errorTarget = document.getElementById("htmx-error")
         // Server error with response contents, equivalent to htmx:responseError
         console.warn("Error", evt.detail)
         const xhr = evt.detail.xhr;
@@ -25,9 +26,9 @@ document.body.addEventListener('htmx:afterRequest', function (evt) {
         errorTarget.removeAttribute("hidden");
     } else {
         // Unspecified failure, usually caused by network error
-        console.error("Unexpected htmx error", evt.detail)
-        errorTarget.innerText = "Unexpected error, check your connection and try to refresh the page.";
-        errorTarget.removeAttribute("hidden");
+        // console.error("Unexpected htmx error", evt.detail)
+        // errorTarget.innerText = "Unexpected error, check your connection and try to refresh the page.";
+        // errorTarget.removeAttribute("hidden");
     }
 });
 </script>
