@@ -25,13 +25,6 @@ func (app *application) routes() http.Handler {
 
 	// roasters
 	mux.Group(func(mux *flow.Mux) {
-		mux.Use(app.requirePermission("roasters:read"))
-
-		// pages
-		mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
-		mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
-	})
-	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("roasters:write"))
 
 		// pages
@@ -43,15 +36,15 @@ func (app *application) routes() http.Handler {
 		mux.HandleFunc("/roasters/:id", app.roasterEditPatch, http.MethodPatch)
 		mux.HandleFunc("/roasters/:id", app.roasterRemove, http.MethodDelete)
 	})
-
-	// beans
 	mux.Group(func(mux *flow.Mux) {
-		mux.Use(app.requirePermission("beans:read"))
+		mux.Use(app.requirePermission("roasters:read"))
 
 		// pages
-		mux.HandleFunc("/beans", app.beanList, http.MethodGet)
-		mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
+		mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
+		mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
 	})
+
+	// beans
 	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("beans:write"))
 
@@ -63,6 +56,13 @@ func (app *application) routes() http.Handler {
 		mux.HandleFunc("/beans", app.beanCreatePost, http.MethodPost)
 		mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
 		mux.HandleFunc("/beans/:id", app.beanRemove, http.MethodDelete)
+	})
+	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("beans:read"))
+
+		// pages
+		mux.HandleFunc("/beans", app.beanList, http.MethodGet)
+		mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
 	})
 
 	// user pages
