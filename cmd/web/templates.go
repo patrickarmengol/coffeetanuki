@@ -60,6 +60,23 @@ func newTemplateCache() (map[string]*template.Template, error) {
 		cache[name] = ts
 	}
 
+	// get list of partials
+	partials, err := fs.Glob(ui.Files, "html/partials/*.gohtml")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, part := range partials {
+		name := filepath.Base(part)
+
+		ts, err := template.New(name).Funcs(functions).ParseFS(ui.Files, part)
+		if err != nil {
+			return nil, err
+		}
+
+		cache[name] = ts
+	}
+
 	return cache, nil
 }
 
