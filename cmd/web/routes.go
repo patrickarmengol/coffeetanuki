@@ -25,6 +25,12 @@ func (app *application) routes() http.Handler {
 
 	// roasters
 	mux.Group(func(mux *flow.Mux) {
+		mux.Use(app.requirePermission("roasters:read"))
+
+		// htmx
+		mux.HandleFunc("/roasters/search", app.roasterSearch, http.MethodGet)
+	})
+	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("roasters:write"))
 
 		// pages

@@ -4,8 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
+	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
@@ -253,6 +256,68 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	for _, r := range roastersMap {
 		roasters = append(roasters, &r)
 	}
+	return roasters, nil
+}
+
+func (rep RoasterRepository) Search(searchTerm string, pageNum int, pageSize int, sort string) ([]*Roaster, error) {
+	if len(searchTerm) == 0 {
+		return rep.GetAll()
+	}
+
+	searchFields := []string{"name", "description"}
+
+	conditions := []string{}
+	for _, field := range searchFields {
+		conditions = append(conditions, fmt.Sprintf("%s ILIKE ANY($1)", field))
+	}
+
+	stmt := fmt.Sprintf(`
+		SELECT id, name, description, website, location, created_at, version
+		FROM roasters
+		WHERE %s
+		ORDER BY id ASC
+	`, strings.Join(conditions, " OR "))
+
+	words := strings.Fields(searchTerm)
+	wrappedWords := []string{}
+	for _, w := range words {
+		wrappedWords = append(wrappedWords, fmt.Sprintf("%%%s%%", w))
+	}
+	args := []any{pq.Array(wrappedWords)}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	roasters := []*Roaster{}
+
+	for rows.Next() {
+		var roaster Roaster
+
+		err := rows.Scan(
+			&roaster.ID,
+			&roaster.Name,
+			&roaster.Description,
+			&roaster.Website,
+			&roaster.Location,
+			&roaster.CreatedAt,
+			&roaster.Version,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		roasters = append(roasters, &roaster)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
 	return roasters, nil
 }
 

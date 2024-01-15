@@ -57,6 +57,33 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterlist.gohtml", "base", td)
 }
 
+func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
+	td := app.newTemplateData(r)
+
+	var input struct {
+		SearchTerm string `form:"search"`
+		PageNum    int    `form:"page"`
+		PageSize   int    `form:"page_size"`
+		Sort       string `form:"sort"`
+	}
+
+	// TODO: search input validation
+
+	err := app.decodeURLQuery(r, &input)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+	roasters, err := app.repositories.Roasters.Search(input.SearchTerm, input.PageNum, input.PageSize, input.Sort)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	td.Roasters = roasters
+
+	app.render(w, r, http.StatusOK, "roasterresults.gohtml", "roasterresults", td)
+}
+
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 

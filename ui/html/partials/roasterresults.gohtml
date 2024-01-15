@@ -1,0 +1,11 @@
+{{define "roasterresults"}}
+{{range .Roasters}}
+<tr>
+    <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
+    <td><a href='{{.Website}}'>{{.Website}}</a></td>
+    <td>{{.Location}}</td>
+    <td>{{.ID}}</td>
+    <td><a class='button' href='/roasters/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/roasters/{{.ID}}'>Delete</button></td>
+</tr>
+{{end}}
+{{end}}

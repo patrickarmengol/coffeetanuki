@@ -5,6 +5,19 @@
 <section class='section'>
     <div class='container'>
         <div id='htmx-error' hidden></div>
+
+        <h3>
+            Search Roasters
+            <span class="htmx-indicator">Searching...</span>
+        </h3>
+
+        <input class='form-control' type='search' name='search'
+            placeholder='begin typing to search roasters...'
+            hx-get='/roasters/search'
+            hx-trigger='input changed delay:500ms, search'
+            hx-target='#search-results'
+            hx-indicator='.htmx-indicator'>
+
         <table class='table is-fullwidth is-hoverable'>
             <thead>
                 <tr>
@@ -15,16 +28,8 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
-                {{range .Roasters}}
-                <tr>
-                    <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
-                    <td><a href='{{.Website}}'>{{.Website}}</a></td>
-                    <td>{{.Location}}</td>
-                    <td>{{.ID}}</td>
-                    <td><a class='button' href='/roasters/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/roasters/{{.ID}}'>Delete</button></td>
-                </tr>
-                {{end}}
+            <tbody id='search-results' hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
+                {{template "roasterresults" .}}
             </tbody>
         </table>
     </div>
