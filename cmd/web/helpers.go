@@ -27,7 +27,25 @@ func (app *application) decodePostForm(r *http.Request, dst any) error {
 	err = app.formDecoder.Decode(dst, r.PostForm)
 	if err != nil {
 		// if dst is invalid / nil pointer, panic
-		var invalidDecoderError *form.InvalidEncodeError
+		var invalidDecoderError *form.InvalidDecoderError
+		if errors.As(err, &invalidDecoderError) {
+			panic(err)
+		}
+
+		// all other errors
+		return err
+	}
+
+	return nil
+}
+
+func (app *application) decodeURLQuery(r *http.Request, dst any) error {
+	qs := r.URL.Query()
+
+	err := app.formDecoder.Decode(dst, qs)
+	if err != nil {
+		// if dst is invalid / nil pointer, panic
+		var invalidDecoderError *form.InvalidDecoderError
 		if errors.As(err, &invalidDecoderError) {
 			panic(err)
 		}
