@@ -266,7 +266,7 @@ func (rep RoasterRepository) Search(sq SearchQuery) ([]*Roaster, error) {
 
 	// search term will match if all space-delimited words are in the concatenation of searchable columns
 	searchFields := []string{"name", "description"}
-	termConditions := fmt.Sprintf(`CONCAT(%s) ILIKE ALL($1)`, strings.Join(searchFields, ", ' ', "))
+	termConditions := fmt.Sprintf(`(CONCAT(%s) ILIKE ALL($1) OR $1 = '{}')`, strings.Join(searchFields, ", ' ', "))
 	conditions = append(conditions, termConditions)
 
 	// TODO: move this to SearchQuery method
@@ -281,7 +281,7 @@ func (rep RoasterRepository) Search(sq SearchQuery) ([]*Roaster, error) {
 	stmt := fmt.Sprintf(`
 		SELECT id, name, description, website, location, created_at, version
 		FROM roasters
-		WHERE (%s) OR $1 = '{}'
+		WHERE %s
 		ORDER BY %s %s, id ASC
 	`, strings.Join(conditions, " AND "), sq.sortBy(), sq.sortDir())
 
