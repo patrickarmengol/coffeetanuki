@@ -269,12 +269,7 @@ func (rep RoasterRepository) Search(sq SearchQuery) ([]*Roaster, error) {
 	termConditions := fmt.Sprintf(`(CONCAT(%s) ILIKE ALL($1) OR $1 = '{}')`, strings.Join(searchFields, ", ' ', "))
 	conditions = append(conditions, termConditions)
 
-	// TODO: move this to SearchQuery method
-	wrappedWords := []string{}
-	for _, w := range strings.Fields(sq.Term) {
-		wrappedWords = append(wrappedWords, fmt.Sprintf("%%%s%%", w))
-	}
-	wordArray := pq.Array(wrappedWords)
+	wordArray := pq.Array(sq.termWordsWrapped())
 
 	// TODO: add tag conditions
 
