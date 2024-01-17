@@ -14,8 +14,15 @@ type SearchQuery struct {
 }
 
 func (sq SearchQuery) Validate(v *validator.Validator) {
-	sortBy := strings.TrimLeft(sq.Sort, "+-")
-	v.CheckField(len(sq.Sort) == len(sortBy)+1, "sort", "invalid sort format")
+	sortByAsc, okAsc := strings.CutSuffix(sq.Sort, "_asc")
+	sortByDesc, okDesc := strings.CutSuffix(sq.Sort, "_desc")
+	var sortBy string
+	if okAsc {
+		sortBy = sortByAsc
+	} else {
+		sortBy = sortByDesc
+	}
+	v.CheckField(okAsc || okDesc, "sort", "invalid sort format")
 	v.CheckField(validator.PermittedValue(sortBy, sq.SortableColumns...), "sort", "invalid sort column")
 }
 
@@ -32,7 +39,17 @@ func (sq SearchQuery) termWordsWrapped() []string {
 }
 
 func (sq SearchQuery) sortBy() string {
-	sortBy := strings.TrimLeft(sq.Sort, "+-")
+	sortByAsc, okAsc := strings.CutSuffix(sq.Sort, "_asc")
+	sortByDesc, okDesc := strings.CutSuffix(sq.Sort, "_desc")
+	var sortBy string
+	if okAsc {
+		sortBy = sortByAsc
+	} else if okDesc {
+		sortBy = sortByDesc
+	} else {
+		// sort should have been validated
+		panic("invalid sort format: " + sq.Sort)
+	}
 	for _, col := range sq.SortableColumns {
 		if sortBy == col {
 			return sortBy
@@ -44,9 +61,9 @@ func (sq SearchQuery) sortBy() string {
 }
 
 func (sq SearchQuery) sortDir() string {
-	if strings.HasPrefix(sq.Sort, "+") {
+	if strings.HasSuffix(sq.Sort, "_asc") {
 		return "ASC"
-	} else if strings.HasPrefix(sq.Sort, "-") {
+	} else if strings.HasSuffix(sq.Sort, "_desc") {
 		return "DESC"
 	} else {
 		// sort should have been validated

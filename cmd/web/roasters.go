@@ -57,7 +57,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.Sort == "" {
-		input.Sort = "+id"
+		input.Sort = "id_asc"
 	}
 	sq := data.SearchQuery{
 		Term:            input.Term,
@@ -102,7 +102,7 @@ func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if input.Sort == "" {
-		input.Sort = "+id"
+		input.Sort = "id_asc"
 	}
 	sq := data.SearchQuery{
 		Term:            input.Term,
