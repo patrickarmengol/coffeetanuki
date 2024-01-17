@@ -18,6 +18,7 @@ type templateData struct {
 	Beans           []*data.Bean
 	Roaster         *data.Roaster
 	Roasters        []*data.Roaster
+	SearchQuery     *data.SearchQuery
 	User            *data.User
 	Validator       *validator.Validator
 	Result          bool

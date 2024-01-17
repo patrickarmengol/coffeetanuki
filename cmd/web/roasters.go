@@ -45,8 +45,38 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
+	var input struct {
+		Term string `form:"term"`
+		Sort string `form:"sort"`
+	}
+
+	err := app.decodeURLQuery(r, &input)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	if input.Sort == "" {
+		input.Sort = "+id"
+	}
+	sq := data.SearchQuery{
+		Term:            input.Term,
+		Sort:            input.Sort,
+		SortableColumns: []string{"id", "name", "location"},
+	}
+	v := validator.New()
+	td.Validator = v
+	sq.Validate(v)
+	td.SearchQuery = &sq
+
+	if !v.Valid() {
+		// TODO: what should the failure result be?
+		app.render(w, r, http.StatusUnprocessableEntity, "roasterlist.gohtml", "base", td)
+		return
+	}
+
 	// read roasters from db
-	roasters, err := app.repositories.Roasters.GetAll()
+	roasters, err := app.repositories.Roasters.Search(sq)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -61,25 +91,42 @@ func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	var input struct {
-		SearchTerm string `form:"search"`
-		PageNum    int    `form:"page"`
-		PageSize   int    `form:"page_size"`
-		Sort       string `form:"sort"`
+		Term string `form:"term"`
+		Sort string `form:"sort"`
 	}
-
-	// TODO: search input validation
 
 	err := app.decodeURLQuery(r, &input)
 	if err != nil {
 		app.badRequestResponse(w)
 		return
 	}
-	roasters, err := app.repositories.Roasters.Search(input.SearchTerm, input.PageNum, input.PageSize, input.Sort)
+
+	if input.Sort == "" {
+		input.Sort = "+id"
+	}
+	sq := data.SearchQuery{
+		Term:            input.Term,
+		Sort:            input.Sort,
+		SortableColumns: []string{"id", "name", "location"},
+	}
+	v := validator.New()
+	td.Validator = v
+	sq.Validate(v)
+
+	if !v.Valid() {
+		app.render(w, r, http.StatusUnprocessableEntity, "roasterresults.gohtml", "roasterresults", td)
+		return
+	}
+
+	roasters, err := app.repositories.Roasters.Search(sq)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	td.Roasters = roasters
+
+	newPath := r.URL.Host + "/roasters?" + r.URL.RawQuery
+	w.Header().Add("HX-Push-URL", newPath)
 
 	app.render(w, r, http.StatusOK, "roasterresults.gohtml", "roasterresults", td)
 }

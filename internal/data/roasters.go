@@ -152,47 +152,47 @@ func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
 	return &roaster, nil
 }
 
-func (rep RoasterRepository) GetAll() ([]*Roaster, error) {
-	stmt := `
-	SELECT *
-	FROM roasters
-	`
-
-	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancel()
-
-	rows, err := rep.DB.QueryContext(ctx, stmt)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-
-	roasters := []*Roaster{}
-
-	for rows.Next() {
-		var roaster Roaster
-
-		err := rows.Scan(
-			&roaster.ID,
-			&roaster.Name,
-			&roaster.Description,
-			&roaster.Website,
-			&roaster.Location,
-			&roaster.CreatedAt,
-			&roaster.Version,
-		)
-		if err != nil {
-			return nil, err
-		}
-
-		roasters = append(roasters, &roaster)
-	}
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return roasters, nil
-}
+// func (rep RoasterRepository) GetAll() ([]*Roaster, error) {
+// 	stmt := `
+// 	SELECT *
+// 	FROM roasters
+// 	`
+//
+// 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+// 	defer cancel()
+//
+// 	rows, err := rep.DB.QueryContext(ctx, stmt)
+// 	if err != nil {
+// 		return nil, err
+// 	}
+// 	defer rows.Close()
+//
+// 	roasters := []*Roaster{}
+//
+// 	for rows.Next() {
+// 		var roaster Roaster
+//
+// 		err := rows.Scan(
+// 			&roaster.ID,
+// 			&roaster.Name,
+// 			&roaster.Description,
+// 			&roaster.Website,
+// 			&roaster.Location,
+// 			&roaster.CreatedAt,
+// 			&roaster.Version,
+// 		)
+// 		if err != nil {
+// 			return nil, err
+// 		}
+//
+// 		roasters = append(roasters, &roaster)
+// 	}
+// 	if err = rows.Err(); err != nil {
+// 		return nil, err
+// 	}
+//
+// 	return roasters, nil
+// }
 
 func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	stmt := `
@@ -259,31 +259,33 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	return roasters, nil
 }
 
-func (rep RoasterRepository) Search(searchTerm string, pageNum int, pageSize int, sort string) ([]*Roaster, error) {
-	if len(searchTerm) == 0 {
-		return rep.GetAll()
-	}
-
-	searchFields := []string{"name", "description"}
+func (rep RoasterRepository) Search(sq SearchQuery) ([]*Roaster, error) {
+	// TODO: clean this up
 
 	conditions := []string{}
-	for _, field := range searchFields {
-		conditions = append(conditions, fmt.Sprintf("%s ILIKE ANY($1)", field))
+
+	// search term will match if all space-delimited words are in the concatenation of searchable columns
+	searchFields := []string{"name", "description"}
+	termConditions := fmt.Sprintf(`CONCAT(%s) ILIKE ALL($1)`, strings.Join(searchFields, ", ' ', "))
+	conditions = append(conditions, termConditions)
+
+	// TODO: move this to SearchQuery method
+	wrappedWords := []string{}
+	for _, w := range strings.Fields(sq.Term) {
+		wrappedWords = append(wrappedWords, fmt.Sprintf("%%%s%%", w))
 	}
+	wordArray := pq.Array(wrappedWords)
+
+	// TODO: add tag conditions
 
 	stmt := fmt.Sprintf(`
 		SELECT id, name, description, website, location, created_at, version
 		FROM roasters
-		WHERE %s
-		ORDER BY id ASC
-	`, strings.Join(conditions, " OR "))
+		WHERE (%s) OR $1 = '{}'
+		ORDER BY %s %s, id ASC
+	`, strings.Join(conditions, " AND "), sq.sortBy(), sq.sortDir())
 
-	words := strings.Fields(searchTerm)
-	wrappedWords := []string{}
-	for _, w := range words {
-		wrappedWords = append(wrappedWords, fmt.Sprintf("%%%s%%", w))
-	}
-	args := []any{pq.Array(wrappedWords)}
+	args := []any{wordArray}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
