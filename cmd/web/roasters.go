@@ -42,9 +42,7 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterview.gohtml", "base", td)
 }
 
-func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
-	td := app.newTemplateData(r)
-
+func parseSearchQuery(app *application, r *http.Request) (*data.SearchQuery, error) {
 	var input struct {
 		Term string `form:"term"`
 		Sort string `form:"sort"`
@@ -52,8 +50,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 
 	err := app.decodeURLQuery(r, &input)
 	if err != nil {
-		app.badRequestResponse(w)
-		return
+		return nil, err
 	}
 
 	if input.Sort == "" {
@@ -64,19 +61,29 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 		Sort:            input.Sort,
 		SortableColumns: []string{"id", "name", "location"},
 	}
+	return &sq, nil
+}
+
+func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
+	td := app.newTemplateData(r)
+
+	sq, err := parseSearchQuery(app, r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
 	v := validator.New()
-	td.Validator = v
 	sq.Validate(v)
-	td.SearchQuery = &sq
+	td.SearchQuery = sq
 
 	if !v.Valid() {
-		// TODO: what should the failure result be?
-		app.render(w, r, http.StatusUnprocessableEntity, "roasterlist.gohtml", "base", td)
+		app.badRequestResponse(w)
 		return
 	}
 
 	// read roasters from db
-	roasters, err := app.repositories.Roasters.Search(sq)
+	roasters, err := app.repositories.Roasters.Search(*sq)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -90,41 +97,30 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	var input struct {
-		Term string `form:"term"`
-		Sort string `form:"sort"`
-	}
-
-	err := app.decodeURLQuery(r, &input)
+	sq, err := parseSearchQuery(app, r)
 	if err != nil {
 		app.badRequestResponse(w)
 		return
 	}
 
-	if input.Sort == "" {
-		input.Sort = "id_asc"
-	}
-	sq := data.SearchQuery{
-		Term:            input.Term,
-		Sort:            input.Sort,
-		SortableColumns: []string{"id", "name", "location"},
-	}
 	v := validator.New()
-	td.Validator = v
 	sq.Validate(v)
+	td.SearchQuery = sq
 
 	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "roasterresults.gohtml", "roasterresults", td)
+		app.badRequestResponse(w)
 		return
 	}
 
-	roasters, err := app.repositories.Roasters.Search(sq)
+	// read roasters from db
+	roasters, err := app.repositories.Roasters.Search(*sq)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
 	}
 	td.Roasters = roasters
 
+	// update client url
 	newPath := r.URL.Host + "/roasters?" + r.URL.RawQuery
 	w.Header().Add("HX-Push-URL", newPath)
 
