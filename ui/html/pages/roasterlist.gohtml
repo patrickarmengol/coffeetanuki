@@ -7,36 +7,53 @@
         <div id='htmx-error' hidden></div>
 
         <h3>
-            Search Roasters
+            Roasters
             <span class="htmx-indicator">Searching...</span>
         </h3>
 
-        <form class='form'
-            hx-get='/roasters/search'
-            hx-trigger='input delay:500ms'
-            hx-target='#search-results'
-            hx-indicator='.htmx-indicator'>
-        
+        <div class='columns'>
+            <form class='form column is-one-fifth'
+                hx-get='/roasters/search'
+                hx-trigger='input delay:500ms, change'
+                hx-target='#search-results'
+                hx-indicator='.htmx-indicator'>
 
-            <input class='form-control' type='search' name='term'
-                placeholder='begin typing to search roasters...' value='{{.SearchQuery.Term}}'>
-            <input class='form-control' type='text' name='sort' value='{{.SearchQuery.Sort}}'>
-        </form>
+                <div class='field'>
+                    <div class='control is-expanded'>
+                        <input class='input' type='text' name='term'
+                            placeholder='Filter' value='{{.SearchQuery.Term}}'>
+                    </div>
+                </div>
+                <div class='field'>
+                    <div class='label'>Sort</div>
+                    <div class='control is-expanded'>
+                        <div class='select is-fullwidth'>
+                            <select type='select' name='sort' value='{{.SearchQuery.Sort}}'>
+                                <option>id_asc</option>
+                                <option>id_desc</option>
+                                <option>name_asc</option>
+                                <option>name_desc</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </form>
 
-        <table class='table is-fullwidth is-hoverable'>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Website</th>
-                    <th>Location</th>
-                    <th>ID</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id='search-results' hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
-                {{template "roasterresults" .}}
-            </tbody>
-        </table>
+            <table class='table is-fullwidth is-hoverable'>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Website</th>
+                        <th>Location</th>
+                        <th>ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id='search-results' hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
+                    {{template "roasterresults" .}}
+                </tbody>
+            </table>
+        </div>
     </div>
 </section>
 {{else}}
