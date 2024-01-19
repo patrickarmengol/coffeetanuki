@@ -25,12 +25,6 @@ func (app *application) routes() http.Handler {
 
 	// roasters
 	mux.Group(func(mux *flow.Mux) {
-		mux.Use(app.requirePermission("roasters:read"))
-
-		// htmx
-		mux.HandleFunc("/roasters/search", app.roasterSearch, http.MethodGet)
-	})
-	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("roasters:write"))
 
 		// pages
@@ -38,9 +32,9 @@ func (app *application) routes() http.Handler {
 		mux.HandleFunc("/roasters/:id/edit", app.roasterEdit, http.MethodGet)
 
 		// htmx
-		mux.HandleFunc("/roasters", app.roasterCreatePost, http.MethodPost)
-		mux.HandleFunc("/roasters/:id", app.roasterEditPatch, http.MethodPatch)
-		mux.HandleFunc("/roasters/:id", app.roasterRemove, http.MethodDelete)
+		mux.HandleFunc("/hx/roasters", app.roasterCreatePost, http.MethodPost)
+		mux.HandleFunc("/hx/roasters/:id", app.roasterEditPatch, http.MethodPatch)
+		mux.HandleFunc("/hx/roasters/:id", app.roasterRemove, http.MethodDelete)
 	})
 	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("roasters:read"))
@@ -48,6 +42,9 @@ func (app *application) routes() http.Handler {
 		// pages
 		mux.HandleFunc("/roasters", app.roasterList, http.MethodGet)
 		mux.HandleFunc("/roasters/:id", app.roasterView, http.MethodGet)
+
+		// htmx
+		mux.HandleFunc("/hx/roasters/search", app.roasterSearch, http.MethodGet)
 	})
 
 	// beans
@@ -59,9 +56,9 @@ func (app *application) routes() http.Handler {
 		mux.HandleFunc("/beans/:id/edit", app.beanEdit, http.MethodGet)
 
 		// htmx
-		mux.HandleFunc("/beans", app.beanCreatePost, http.MethodPost)
-		mux.HandleFunc("/beans/:id", app.beanEditPatch, http.MethodPatch)
-		mux.HandleFunc("/beans/:id", app.beanRemove, http.MethodDelete)
+		mux.HandleFunc("/hx/beans", app.beanCreatePost, http.MethodPost)
+		mux.HandleFunc("/hx/beans/:id", app.beanEditPatch, http.MethodPatch)
+		mux.HandleFunc("/hx/beans/:id", app.beanRemove, http.MethodDelete)
 	})
 	mux.Group(func(mux *flow.Mux) {
 		mux.Use(app.requirePermission("beans:read"))
@@ -77,9 +74,9 @@ func (app *application) routes() http.Handler {
 	mux.HandleFunc("/account", app.userAccountView, http.MethodGet)
 
 	// user htmx
-	mux.HandleFunc("/user/signup", app.userSignupPost, http.MethodPost)
-	mux.HandleFunc("/user/login", app.userLoginPost, http.MethodPost)
-	mux.HandleFunc("/user/logout", app.userLogoutPost, http.MethodPost)
+	mux.HandleFunc("/hx/user/signup", app.userSignupPost, http.MethodPost)
+	mux.HandleFunc("/hx/user/login", app.userLoginPost, http.MethodPost)
+	mux.HandleFunc("/hx/user/logout", app.userLogoutPost, http.MethodPost)
 
 	return mux
 }

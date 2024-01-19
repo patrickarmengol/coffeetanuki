@@ -22,7 +22,7 @@
                     <td>{{.RoastLevel}}</td>
                     <td>{{.RoasterID}}</td>
                     <td>{{.ID}}</td>
-                    <td><a class='button' href='/beans/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/beans/{{.ID}}'>Delete</button></td>
+                    <td><a class='button' href='/beans/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/hx/beans/{{.ID}}'>Delete</button></td>
                 </tr>
                 {{end}}
             </tbody>

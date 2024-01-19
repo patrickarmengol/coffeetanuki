@@ -5,7 +5,7 @@
     <div class='container'>
         <div id='htmx-error' hidden></div>
         {{block "form" .}}
-        <form hx-patch='/roasters/{{.Roaster.ID}}' hx-target='this' hx-swap='outerHTML'>
+        <form hx-patch='/hx/roasters/{{.Roaster.ID}}' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Name:</label>
                 {{with .Validator.FieldErrors.name}}
