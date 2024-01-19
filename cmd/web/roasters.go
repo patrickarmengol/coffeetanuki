@@ -42,32 +42,10 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterview.gohtml", "base", td)
 }
 
-func parseSearchQuery(app *application, r *http.Request) (*data.SearchQuery, error) {
-	var input struct {
-		Term string `form:"term"`
-		Sort string `form:"sort"`
-	}
-
-	err := app.decodeURLQuery(r, &input)
-	if err != nil {
-		return nil, err
-	}
-
-	if input.Sort == "" {
-		input.Sort = "id_asc"
-	}
-	sq := data.SearchQuery{
-		Term:            input.Term,
-		Sort:            input.Sort,
-		SortableColumns: []string{"id", "name", "location"},
-	}
-	return &sq, nil
-}
-
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := parseSearchQuery(app, r)
+	sq, err := app.parseSearchQuery(r)
 	if err != nil {
 		app.badRequestResponse(w)
 		return
@@ -97,7 +75,7 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := parseSearchQuery(app, r)
+	sq, err := app.parseSearchQuery(r)
 	if err != nil {
 		app.badRequestResponse(w)
 		return

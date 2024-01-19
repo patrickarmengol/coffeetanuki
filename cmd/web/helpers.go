@@ -7,6 +7,7 @@ import (
 
 	"github.com/alexedwards/flow"
 	"github.com/go-playground/form/v4"
+	"github.com/patrickarmengol/coffeetanuki/internal/data"
 )
 
 func (app *application) readIDParam(r *http.Request) (int64, error) {
@@ -60,4 +61,26 @@ func (app *application) decodeURLQuery(r *http.Request, dst any) error {
 func (app *application) isAuthenticated(r *http.Request) bool {
 	user := app.contextGetUser(r)
 	return !user.IsAnonymous()
+}
+
+func (app *application) parseSearchQuery(r *http.Request) (*data.SearchQuery, error) {
+	var input struct {
+		Term string `form:"term"`
+		Sort string `form:"sort"`
+	}
+
+	err := app.decodeURLQuery(r, &input)
+	if err != nil {
+		return nil, err
+	}
+
+	if input.Sort == "" {
+		input.Sort = "id_asc"
+	}
+	sq := data.SearchQuery{
+		Term:            input.Term,
+		Sort:            input.Sort,
+		SortableColumns: []string{"id", "name", "location"},
+	}
+	return &sq, nil
 }
