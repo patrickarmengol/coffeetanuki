@@ -1,7 +1,6 @@
 {{define "title"}}Roasters{{end}}
 
 {{define "main"}}
-{{if .Roasters}}
 <section class='section'>
     <div class='container'>
         <div id='htmx-error' hidden></div>
@@ -39,24 +38,10 @@
                 </div>
             </form>
 
-            <table class='table is-hoverable'>
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Website</th>
-                        <th>Location</th>
-                        <th>ID</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id='search-results' hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
-                    {{template "roasterresults" .}}
-                </tbody>
-            </table>
+            <div id='search-results' class='column'>
+                {{template "roasterresults" .}}
+            </div>
         </div>
     </div>
 </section>
-{{else}}
-<p>There's nothing to see here...</p>
-{{end}}
 {{end}}
