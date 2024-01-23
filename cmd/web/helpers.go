@@ -80,7 +80,7 @@ func (app *application) parseSearchQuery(r *http.Request) (*data.SearchQuery, er
 	sq := data.SearchQuery{
 		Term:            input.Term,
 		Sort:            input.Sort,
-		SortableColumns: []string{"id", "name", "location"},
+		SortableColumns: []string{"id", "name"}, // TODO: make this configurable from handler
 	}
 	return &sq, nil
 }
