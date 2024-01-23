@@ -66,6 +66,9 @@ func (app *application) routes() http.Handler {
 		// pages
 		mux.HandleFunc("/beans", app.beanList, http.MethodGet)
 		mux.HandleFunc("/beans/:id", app.beanView, http.MethodGet)
+
+		// htmx
+		mux.HandleFunc("/hx/beans/search", app.beanSearch, http.MethodGet)
 	})
 
 	// user pages

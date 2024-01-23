@@ -8,15 +8,6 @@ import (
 	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
-// type Bean struct {
-// 	ID         int64
-// 	Name       string
-// 	RoastLevel string
-// 	RoasterID  int64
-// 	CreatedAt  time.Time
-// 	Version    int
-// }
-
 type beanForm struct {
 	Name       string `form:"name"`
 	RoastLevel string `form:"roast_level"`
@@ -53,8 +44,23 @@ func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	// read all beans from db
-	beans, err := app.repositories.Beans.GetAll()
+	sq, err := app.parseSearchQuery(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	v := validator.New()
+	sq.Validate(v)
+	td.SearchQuery = sq
+
+	if !v.Valid() {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// read beans from db
+	beans, err := app.repositories.Beans.Search(*sq)
 	if err != nil {
 		app.serverErrorResponse(w, r, err)
 		return
@@ -63,6 +69,40 @@ func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
 
 	// render template response
 	app.render(w, r, http.StatusOK, "beanlist.gohtml", "base", td)
+}
+
+func (app *application) beanSearch(w http.ResponseWriter, r *http.Request) {
+	td := app.newTemplateData(r)
+
+	sq, err := app.parseSearchQuery(r)
+	if err != nil {
+		app.badRequestResponse(w)
+		return
+	}
+
+	v := validator.New()
+	sq.Validate(v)
+	td.SearchQuery = sq
+
+	if !v.Valid() {
+		app.badRequestResponse(w)
+		return
+	}
+
+	// read beans from db
+	beans, err := app.repositories.Beans.Search(*sq)
+	if err != nil {
+		app.serverErrorResponse(w, r, err)
+		return
+	}
+	td.Beans = beans
+
+	// update client url
+	newPath := r.URL.Host + "/beans?" + r.URL.RawQuery
+	w.Header().Add("HX-Push-URL", newPath)
+
+	// render template response
+	app.render(w, r, http.StatusOK, "beanresults.gohtml", "beanresults", td)
 }
 
 func (app *application) beanCreate(w http.ResponseWriter, r *http.Request) {

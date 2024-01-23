@@ -5,8 +5,10 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
+	"github.com/lib/pq"
 	"github.com/patrickarmengol/coffeetanuki/internal/validator"
 )
 
@@ -172,6 +174,52 @@ func (rep BeanRepository) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
 		var bean Bean
 
 		err := rows.Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.CreatedAt, &bean.Version)
+		if err != nil {
+			return nil, err
+		}
+
+		beans = append(beans, &bean)
+	}
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return beans, nil
+}
+
+func (rep BeanRepository) Search(sq SearchQuery) ([]*Bean, error) {
+	conditions := []string{}
+
+	// search term will match if all space-delimited words are in the concatenation of searchable columns
+	searchFields := []string{"name"}
+	termConditions := fmt.Sprintf(`(CONCAT(%s) ILIKE ALL($1) OR $1 = '{}')`, strings.Join(searchFields, ", ' ', "))
+	conditions = append(conditions, termConditions)
+
+	wordArray := pq.Array(sq.termWordsWrapped())
+
+	stmt := fmt.Sprintf(`
+		SELECT id, name, roast_level, roaster_id, created_at, version
+		FROM beans
+		WHERE %s
+		ORDER BY %s %s, id ASC
+	`, strings.Join(conditions, " AND "), sq.sortBy(), sq.sortDir())
+
+	args := []any{wordArray}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	beans := []*Bean{}
+	for rows.Next() {
+		var bean Bean
+
+		err := rows.Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.RoasterID, &bean.CreatedAt, &bean.Version)
 		if err != nil {
 			return nil, err
 		}
