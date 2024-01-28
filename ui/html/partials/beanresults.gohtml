@@ -1,28 +1,11 @@
 {{define "beanresults"}}
-{{if .Beans}}
-<table class='table is-hoverable'>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Roast Level</th>
-            <th>Roaster ID</th>
-            <th>ID</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
-        {{range .Beans}}
-        <tr>
-            <td><a href='/beans/{{.ID}}'>{{.Name}}</a></td>
-            <td>{{.RoastLevel}}</td>
-            <td>{{.RoasterID}}</td>
-            <td>{{.ID}}</td>
-            <td><a class='button' href='/beans/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/hx/beans/{{.ID}}'>Delete</button></td>
-        </tr>
-        {{end}}
-    </tbody>
-</table>
-{{else}}
-<p>No results.</p>
+{{range .Beans}}
+<tr>
+    <td><a href='/beans/{{.ID}}'>{{.Name}}</a></td>
+    <td>{{.RoastLevel}}</td>
+    <td>{{.RoasterID}}</td>
+    <td>{{.ID}}</td>
+    <td><a class='button' href='/beans/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/hx/beans/{{.ID}}'>Delete</button></td>
+</tr>
 {{end}}
 {{end}}

@@ -33,9 +33,20 @@
                 </div>
             </form>
 
-            <div id='search-results' class='column'>
-                {{template "beanresults" .}}
-            </div>
+            <table class='table is-hoverable'>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roast Level</th>
+                        <th>Roaster ID</th>
+                        <th>ID</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody class='search-results' hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
+                    {{template "beanresults" .}}
+                </tbody>
+            </table>
         </div>
     </div>
 </section>

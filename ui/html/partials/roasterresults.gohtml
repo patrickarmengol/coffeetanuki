@@ -1,28 +1,11 @@
 {{define "roasterresults"}}
-{{if .Roasters}}
-<table class='table is-hoverable'>
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Website</th>
-            <th>Location</th>
-            <th>ID</th>
-            <th>Actions</th>
-        </tr>
-    </thead>
-    <tbody hx-confirm='Are you sure?' hx-target='closest tr' hx-swap='outerHTML'>
-        {{range .Roasters}}
-        <tr>
-            <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
-            <td><a href='{{.Website}}'>{{.Website}}</a></td>
-            <td>{{.Location}}</td>
-            <td>{{.ID}}</td>
-            <td><a class='button' href='/roasters/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/hx/roasters/{{.ID}}'>Delete</button></td>
-        </tr>
-        {{end}}
-    </tbody>
-</table>
-{{else}}
-<p>No results.</p>
+{{range .Roasters}}
+<tr>
+    <td><a href='/roasters/{{.ID}}'>{{.Name}}</a></td>
+    <td><a href='{{.Website}}'>{{.Website}}</a></td>
+    <td>{{.Location}}</td>
+    <td>{{.ID}}</td>
+    <td><a class='button' href='/roasters/{{.ID}}/edit'>Edit</a> <button class='button' hx-delete='/hx/roasters/{{.ID}}'>Delete</button></td>
+</tr>
 {{end}}
 {{end}}
