@@ -12,7 +12,7 @@ import (
 type Permissions []string
 
 type PermissionRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // helpers
@@ -35,7 +35,7 @@ func (rep PermissionRepository) GetAllForUser(userID int64) (Permissions, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt, userID)
+	rows, err := rep.db.QueryContext(ctx, stmt, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -67,6 +67,6 @@ func (rep PermissionRepository) AddForUser(userID int64, codes ...string) error 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	_, err := rep.DB.ExecContext(ctx, stmt, userID, pq.Array(codes))
+	_, err := rep.db.ExecContext(ctx, stmt, userID, pq.Array(codes))
 	return err
 }

@@ -35,7 +35,7 @@ type NullableBean struct {
 }
 
 type BeanRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // validate
@@ -73,7 +73,7 @@ func (rep BeanRepository) Insert(bean *Bean) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.CreatedAt, &bean.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: insert or update on table "beans" violates foreign key constraint "beans_roaster_id_fkey"`:
@@ -105,7 +105,7 @@ func (rep BeanRepository) Get(id int64) (*Bean, error) {
 	defer cancel()
 
 	var bean Bean
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.RoasterID, &bean.CreatedAt, &bean.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&bean.ID, &bean.Name, &bean.RoastLevel, &bean.RoasterID, &bean.CreatedAt, &bean.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -127,7 +127,7 @@ func (rep BeanRepository) GetAll() ([]*Bean, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt)
+	rows, err := rep.db.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -163,7 +163,7 @@ func (rep BeanRepository) GetAllForRoaster(roasterID int64) ([]*Bean, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt, args)
+	rows, err := rep.db.QueryContext(ctx, stmt, args)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +209,7 @@ func (rep BeanRepository) Search(sq SearchQuery) ([]*Bean, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
+	rows, err := rep.db.QueryContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -248,7 +248,7 @@ func (rep BeanRepository) Update(bean *Bean) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&bean.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&bean.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: insert or update on table "beans" violates foreign key constraint "beans_roaster_id_fkey"`:
@@ -278,7 +278,7 @@ func (rep BeanRepository) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := rep.DB.ExecContext(ctx, query, id)
+	result, err := rep.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return err
 	}

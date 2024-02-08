@@ -24,7 +24,7 @@ type Roaster struct {
 }
 
 type RoasterRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // validate
@@ -50,7 +50,7 @@ func (rep RoasterRepository) Insert(roaster *Roaster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	return rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.CreatedAt, &roaster.Version)
+	return rep.db.QueryRowContext(ctx, stmt, args...).Scan(&roaster.ID, &roaster.CreatedAt, &roaster.Version)
 }
 
 // read
@@ -72,7 +72,7 @@ func (rep RoasterRepository) Get(id int64) (*Roaster, error) {
 	defer cancel()
 
 	var roaster Roaster
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(
 		&roaster.ID,
 		&roaster.Name,
 		&roaster.Description,
@@ -110,7 +110,7 @@ func (rep RoasterRepository) GetFull(id int64) (*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
+	rows, err := rep.db.QueryContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -204,7 +204,7 @@ func (rep RoasterRepository) GetAllFull() ([]*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt)
+	rows, err := rep.db.QueryContext(ctx, stmt)
 	if err != nil {
 		return nil, err
 	}
@@ -285,7 +285,7 @@ func (rep RoasterRepository) Search(sq SearchQuery) ([]*Roaster, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	rows, err := rep.DB.QueryContext(ctx, stmt, args...)
+	rows, err := rep.db.QueryContext(ctx, stmt, args...)
 	if err != nil {
 		return nil, err
 	}
@@ -333,7 +333,7 @@ func (rep RoasterRepository) Update(roaster *Roaster) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&roaster.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&roaster.Version)
 	if err != nil {
 		switch {
 		case errors.Is(err, sql.ErrNoRows):
@@ -363,7 +363,7 @@ func (rep RoasterRepository) Delete(id int64) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	result, err := rep.DB.ExecContext(ctx, stmt, args...)
+	result, err := rep.db.ExecContext(ctx, stmt, args...)
 	if err != nil {
 		return err
 	}

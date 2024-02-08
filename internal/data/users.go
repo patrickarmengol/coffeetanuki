@@ -30,7 +30,7 @@ type User struct {
 }
 
 type UserRepository struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
 // helpers
@@ -108,7 +108,7 @@ func (rep *UserRepository) Insert(user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&user.ID, &user.CreatedAt, &user.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
@@ -132,7 +132,7 @@ func (rep *UserRepository) Exists(id int64) (bool, error) {
 	defer cancel()
 
 	var exists bool
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&exists)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&exists)
 	return exists, err
 }
 
@@ -148,7 +148,7 @@ func (rep *UserRepository) Get(id int64) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, id).Scan(
+	err := rep.db.QueryRowContext(ctx, stmt, id).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,
@@ -181,7 +181,7 @@ func (rep *UserRepository) GetByEmail(email string) (*User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, email).Scan(
+	err := rep.db.QueryRowContext(ctx, stmt, email).Scan(
 		&user.ID,
 		&user.Name,
 		&user.Email,
@@ -222,7 +222,7 @@ func (rep *UserRepository) Update(user *User) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	err := rep.DB.QueryRowContext(ctx, stmt, args...).Scan(&user.Version)
+	err := rep.db.QueryRowContext(ctx, stmt, args...).Scan(&user.Version)
 	if err != nil {
 		switch {
 		case err.Error() == `pq: duplicate key value violates unique constraint "users_email_key"`:
