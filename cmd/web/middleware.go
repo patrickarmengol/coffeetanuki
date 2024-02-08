@@ -1,8 +1,10 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"net/http"
+	"time"
 
 	"github.com/patrickarmengol/coffeetanuki/internal/data"
 )
@@ -95,4 +97,14 @@ func (app *application) requirePermission(code string) func(http.Handler) http.H
 
 		return app.requireActivatedUser(fn)
 	}
+}
+
+func setTimeout(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second) // TODO: make timeout configurable
+		defer cancel()
+
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	})
 }
