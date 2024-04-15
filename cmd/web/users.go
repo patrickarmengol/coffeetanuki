@@ -1,87 +1,46 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/coffeetanuki/internal/model"
 )
 
-type userSignupForm struct {
-	Name     string `form:"name"`
-	Email    string `form:"email"`
-	Password string `form:"password"`
-}
-
-type userLoginForm struct {
-	Email    string `form:"email"`
-	Password string `form:"password"`
-}
-
+// user signup page
 func (app *application) userSignup(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// render form with empty model
-	td.Validator = validator.New()
-	td.User = &data.User{}
+	td.UserCreate = &model.UserCreateInput{}
 	app.render(w, r, http.StatusOK, "signup.gohtml", "base", td)
 }
 
+// user signup hx
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse and decode form
-	var form userSignupForm
-	err := app.decodePostForm(r, &form)
+	input := &model.UserCreateInput{}
+	err := app.decodePostForm(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
 		return
 	}
-
-	// pass into model
-	user := &data.User{
-		Name:      form.Name,
-		Email:     form.Email,
-		Activated: true, // TODO: change to false after email-confirm implemented
-	}
-	td.User = user
-	err = user.Password.Set(form.Password)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-
-	// validate
-	v := validator.New()
-	td.Validator = v
-	user.Validate(v)
-
-	// invalid form input
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "signup.gohtml", "form", td)
-		return
-	}
+	td.UserCreate = input
 
 	// try to insert
-	err = app.repositories.Users.Insert(user)
+	user, err := app.services.Users.Signup(r.Context(), input)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrDuplicateEmail):
-			v.AddFieldError("email", "a user with this email address already exists")
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
+			app.logError(r, err)
 			app.render(w, r, http.StatusUnprocessableEntity, "signup.gohtml", "form", td)
-		default:
-			app.serverErrorResponse(w, r, err)
+		} else {
+			app.errorResponse(w, r, err)
 		}
 		return
 	}
-
-	// set permissions for user
-	err = app.repositories.Permissions.AddForUser(user.ID, "beans:read", "roasters:read")
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
+	td.User = user
 
 	// TODO: create registration token for user
 
@@ -90,12 +49,12 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("user successfully registered; redirecting to login"))
 }
 
+// user login page
 func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// render form with empty model
-	td.Validator = validator.New()
-	td.User = &data.User{}
+	td.UserLogin = &model.UserLoginInput{}
 	app.render(w, r, http.StatusOK, "login.gohtml", "base", td)
 }
 
@@ -103,64 +62,36 @@ func (app *application) userLoginPost(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse and decode form
-	var form userLoginForm
-	err := app.decodePostForm(r, &form)
+	input := &model.UserLoginInput{}
+	err := app.decodePostForm(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
 		return
 	}
+	td.UserLogin = input
 
-	// pass into model
-	td.User = &data.User{
-		Email: form.Email,
-	}
-
-	// validate email and pass individually instead of full user
-	v := validator.New()
-	td.Validator = v
-	data.ValidateEmail(v, form.Email)
-	data.ValidatePasswordPlaintext(v, form.Password)
-
-	// invalid form input
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "login.gohtml", "form", td)
-		return
-	}
-
-	// check for db user matching email
-	dbUser, err := app.repositories.Users.GetByEmail(form.Email)
+	user, err := app.services.Users.Login(r.Context(), input)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			v.AddNonFieldError("email or password invalid")
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
 			app.render(w, r, http.StatusUnprocessableEntity, "login.gohtml", "form", td)
-		default:
-			app.serverErrorResponse(w, r, err)
+		} else {
+			app.errorResponse(w, r, err)
 		}
 		return
 	}
+	td.User = user
 
-	// check for db password hash matching form password
-	match, err := dbUser.Password.Matches(form.Password)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
-	if !match {
-		v.AddNonFieldError("email or password invalid")
-		app.render(w, r, http.StatusUnprocessableEntity, "login.gohtml", "form", td)
-		return
-	}
+	// TODO: should i move the session stuff to service?
 
 	// change session token to avoid session fixation
 	err = app.sessionManager.RenewToken(r.Context())
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, err)
 		return
 	}
 
 	// add user id to session
-	app.sessionManager.Put(r.Context(), "authenticatedUserID", dbUser.ID)
+	app.sessionManager.Put(r.Context(), "authenticatedUserID", user.ID)
 
 	// redirect to home
 	w.Header().Add("HX-Redirect", "/")
@@ -171,7 +102,7 @@ func (app *application) userLogoutPost(w http.ResponseWriter, r *http.Request) {
 	// change the session token
 	err := app.sessionManager.RenewToken(r.Context())
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, err)
 		return
 	}
 
@@ -187,7 +118,7 @@ func (app *application) userAccountView(w http.ResponseWriter, r *http.Request) 
 	user := app.contextGetUser(r)
 
 	if user.IsAnonymous() {
-		app.authenticationRequiredResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRNOTAUTHORIZED, "not authorized"))
 		return
 	}
 

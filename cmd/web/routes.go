@@ -33,7 +33,7 @@ func (app *application) routes() http.Handler {
 
 		// htmx
 		mux.HandleFunc("/hx/roasters", app.roasterCreatePost, http.MethodPost)
-		mux.HandleFunc("/hx/roasters/:id", app.roasterEditPatch, http.MethodPatch)
+		mux.HandleFunc("/hx/roasters/:id", app.roasterEditPut, http.MethodPatch)
 		mux.HandleFunc("/hx/roasters/:id", app.roasterRemove, http.MethodDelete)
 	})
 	mux.Group(func(mux *flow.Mux) {
@@ -57,7 +57,7 @@ func (app *application) routes() http.Handler {
 
 		// htmx
 		mux.HandleFunc("/hx/beans", app.beanCreatePost, http.MethodPost)
-		mux.HandleFunc("/hx/beans/:id", app.beanEditPatch, http.MethodPatch)
+		mux.HandleFunc("/hx/beans/:id", app.beanEditPut, http.MethodPut)
 		mux.HandleFunc("/hx/beans/:id", app.beanRemove, http.MethodDelete)
 	})
 	mux.Group(func(mux *flow.Mux) {

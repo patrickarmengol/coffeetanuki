@@ -2,25 +2,31 @@ package main
 
 import (
 	"bytes"
-	"fmt"
 	"html/template"
 	"io/fs"
 	"net/http"
 	"path/filepath"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/coffeetanuki/internal/model"
 	"github.com/patrickarmengol/coffeetanuki/ui"
 )
 
 type templateData struct {
-	Bean            *data.Bean
-	Beans           []*data.Bean
-	Roaster         *data.Roaster
-	Roasters        []*data.Roaster
-	SearchQuery     *data.SearchQuery
-	User            *data.User
-	Validator       *validator.Validator
+	Bean          *model.BeanResponse
+	Beans         []*model.BeanResponse
+	BeanCreate    *model.BeanCreateInput
+	BeanEdit      *model.BeanEditInput
+	BeanFilter    *model.BeanFilterInput
+	Roaster       *model.RoasterResponse
+	Roasters      []*model.RoasterResponse
+	RoasterCreate *model.RoasterCreateInput
+	RoasterEdit   *model.RoasterEditInput
+	RoasterFilter *model.RoasterFilterInput
+	User          *model.UserResponse
+	UserCreate    *model.UserCreateInput
+	UserLogin     *model.UserLoginInput
+	// User            *model.User
 	Result          bool
 	IsAuthenticated bool
 }
@@ -85,8 +91,8 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	// retrieve desired template from cache
 	ts, ok := app.templateCache[fileName]
 	if !ok {
-		err := fmt.Errorf("the template at %s does not exist", fileName)
-		app.serverErrorResponse(w, r, err)
+		err := errs.Errorf("the template at %s does not exist", fileName)
+		app.errorResponse(w, r, err)
 		return
 	}
 
@@ -97,7 +103,7 @@ func (app *application) render(w http.ResponseWriter, r *http.Request, status in
 	// data is currently a pointer to allow for nil; may change later
 	err := ts.ExecuteTemplate(buf, templateName, data)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, err)
 		return
 	}
 

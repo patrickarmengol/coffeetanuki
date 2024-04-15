@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"errors"
 	"net/http"
 	"time"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
+	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/coffeetanuki/internal/model"
 )
 
 func (app *application) authenticate(next http.Handler) http.Handler {
@@ -15,20 +15,20 @@ func (app *application) authenticate(next http.Handler) http.Handler {
 		id := app.sessionManager.GetInt64(r.Context(), "authenticatedUserID")
 		if id == 0 {
 			// user not authenticated; use anon and go to next handler
-			r = app.contextSetUser(r, data.AnonymousUser)
+			r = app.contextSetUser(r, model.AnonymousUser)
 			next.ServeHTTP(w, r)
 			return
 		}
 
 		// check if user with id exists in db
-		user, err := app.repositories.Users.Get(id)
+		user, err := app.services.Users.Get(r.Context(), id)
 		if err != nil {
 			switch {
-			case errors.Is(err, data.ErrRecordNotFound):
+			case errs.ErrorCode(err) == errs.ERRNOTFOUND:
 				// TODO: should i force a reset on the token?
-				app.invalidSessionResponse(w)
+				app.errorResponse(w, r, errs.Errorf(errs.ERRNOTFOUND, "user associated with session token not found"))
 			default:
-				app.serverErrorResponse(w, r, err)
+				app.errorResponse(w, r, err)
 			}
 			return
 		}
@@ -50,7 +50,7 @@ func (app *application) requireAuthenticatedUser(next http.Handler) http.Handler
 		user := app.contextGetUser(r)
 
 		if user.IsAnonymous() {
-			app.authenticationRequiredResponse(w)
+			app.errorResponse(w, r, errs.Errorf(errs.ERRNOTAUTHORIZED, "user authentication required"))
 			return
 		}
 
@@ -66,7 +66,7 @@ func (app *application) requireActivatedUser(next http.Handler) http.Handler {
 		user := app.contextGetUser(r)
 
 		if !user.Activated {
-			app.inactiveAccountResponse(w)
+			app.errorResponse(w, r, errs.Errorf(errs.ERRNOTAUTHORIZED, "user account inactive"))
 			return
 		}
 
@@ -81,14 +81,15 @@ func (app *application) requirePermission(code string) func(http.Handler) http.H
 		fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			user := app.contextGetUser(r)
 
-			permissions, err := app.repositories.Permissions.GetAllForUser(user.ID)
+			// query permissions each time since permissions may change
+			permissions, err := app.services.Users.GetPermissions(r.Context(), user.ID)
 			if err != nil {
-				app.serverErrorResponse(w, r, err)
+				app.errorResponse(w, r, err)
 				return
 			}
 
 			if !permissions.Contains(code) {
-				app.notPermittedResponse(w)
+				app.errorResponse(w, r, errs.Errorf(errs.ERRNOTAUTHORIZED, "user does not have required permissions"))
 				return
 			}
 

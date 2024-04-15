@@ -9,11 +9,9 @@
         <p>description: {{.Description}}</p>
         <p>website: {{.Website}}</p>
         <p>location: {{.Location}}</p>
-        <p>created_at: {{.CreatedAt}}</p>
-        <p>version: {{.Version}}</p>
 
         {{range .Beans}}
-        <p>bean {{.ID}}: {{.Name}}</p>
+        <p>{{.}}</p>
         {{end}}
     </div>
 </section>

@@ -8,21 +8,21 @@
         <form hx-post='/hx/user/signup' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Username:</label>
-                {{with .Validator.FieldErrors.name}}
+                {{with .UserCreate.Validator.FieldErrors.name}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='text' id='name' name='name' value='{{if not .Result}}{{.User.Name}}{{end}}' required />
+                <input type='text' id='name' name='name' value='{{if not .Result}}{{.UserCreate.Name}}{{end}}' required />
             </div>
             <div>
                 <label for='email'>Email Address:</label>
-                {{with .Validator.FieldErrors.email}}
+                {{with .UserCreate.Validator.FieldErrors.email}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='email' id='email' name='email' value='{{if not .Result}}{{.User.Email}}{{end}}' required />
+                <input type='email' id='email' name='email' value='{{if not .Result}}{{.UserCreate.Email}}{{end}}' required />
             </div>
             <div>
                 <label for='password'>Password:</label>
-                {{with .Validator.FieldErrors.password}}
+                {{with .UserCreate.Validator.FieldErrors.password}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='password' id='password' name='password' value='' required />

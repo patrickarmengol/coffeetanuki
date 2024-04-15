@@ -8,21 +8,21 @@
         <form hx-post='/hx/beans' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Name:</label>
-                {{with .Validator.FieldErrors.name}}
+                {{with .BeanCreate.Validator.FieldErrors.name}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='name' name='name' value='{{if .Validator.FieldErrors}}{{.Bean.Name}}{{end}}' required />
             </div>
             <div>
                 <label for='roast_level'>Roast Level:</label>
-                {{with .Validator.FieldErrors.roast_level}}
+                {{with .BeanCreate.Validator.FieldErrors.roast_level}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='roast_level' name='roast_level' value='{{if .Validator.FieldErrors}}{{.Bean.RoastLevel}}{{end}}' required />
             </div>
             <div>
                 <label for='roaster_id'>Roaster ID:</label>
-                {{with .Validator.FieldErrors.roaster_id}}
+                {{with .BeanCreate.Validator.FieldErrors.roaster_id}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='number' id='roaster_id' name='roaster_id' value='{{if .Validator.FieldErrors}}{{.Bean.RoasterID}}{{end}}' required />

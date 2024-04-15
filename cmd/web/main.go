@@ -12,7 +12,7 @@ import (
 	"github.com/alexedwards/scs/postgresstore"
 	"github.com/alexedwards/scs/v2"
 	"github.com/go-playground/form/v4"
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
+	"github.com/patrickarmengol/coffeetanuki/internal/service"
 	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
 )
 
@@ -38,7 +38,7 @@ type application struct {
 	config         config
 	formDecoder    *form.Decoder
 	logger         *slog.Logger
-	repositories   data.Repositories
+	services       *service.Services
 	sessionManager *scs.SessionManager
 	templateCache  map[string]*template.Template
 	wg             sync.WaitGroup
@@ -80,8 +80,8 @@ func main() {
 	defer db.Close()
 	lgr.Info("database connection pool established")
 
-	// initialize models by providing db conn pool
-	repos := data.NewRepositories(db)
+	// initialize services by providing db conn pool
+	svcs := service.NewServices(db)
 
 	// initialize template cache
 	tmpls, err := newTemplateCache()
@@ -102,7 +102,7 @@ func main() {
 		config:         cfg,
 		formDecoder:    fdcdr,
 		logger:         lgr,
-		repositories:   repos,
+		services:       svcs,
 		sessionManager: smgr,
 		templateCache:  tmpls,
 	}

@@ -1,38 +1,27 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/coffeetanuki/internal/model"
 )
 
-type beanForm struct {
-	Name       string `form:"name"`
-	RoastLevel string `form:"roast_level"`
-	RoasterID  int64  `form:"roaster_id"`
-}
-
+// bean page
 func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse id path param
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
 	// read bean from db
-	bean, err := app.repositories.Beans.Get(id)
+	bean, err := app.services.Beans.Get(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
 	td.Bean = bean
@@ -41,28 +30,30 @@ func (app *application) beanView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "beanview.gohtml", "base", td)
 }
 
+// bean list page
 func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := app.parseSearchQuery(r)
+	// decode url query into form
+	input := &model.BeanFilterInput{
+		Sort: "id_asc",
+	}
+	err := app.decodeURLQuery(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid url query format"))
 		return
 	}
-
-	v := validator.New()
-	sq.Validate(v)
-	td.SearchQuery = sq
-
-	if !v.Valid() {
-		app.badRequestResponse(w)
-		return
-	}
+	td.BeanFilter = input
 
 	// read beans from db
-	beans, err := app.repositories.Beans.Search(*sq)
+	beans, err := app.services.Beans.Find(r.Context(), input)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
+			app.logError(r, err)
+			app.render(w, r, http.StatusUnprocessableEntity, "beanlist.gohtml", "base", td)
+		} else {
+			app.errorResponse(w, r, err)
+		}
 		return
 	}
 	td.Beans = beans
@@ -71,28 +62,22 @@ func (app *application) beanList(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "beanlist.gohtml", "base", td)
 }
 
+// bean list hx
 func (app *application) beanSearch(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := app.parseSearchQuery(r)
+	var input *model.BeanFilterInput
+	err := app.decodeURLQuery(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid url query format"))
 		return
 	}
-
-	v := validator.New()
-	sq.Validate(v)
-	td.SearchQuery = sq
-
-	if !v.Valid() {
-		app.badRequestResponse(w)
-		return
-	}
+	// TODO: figure out how to redirect unprocessable errors to the form
 
 	// read beans from db
-	beans, err := app.repositories.Beans.Search(*sq)
+	beans, err := app.services.Beans.Find(r.Context(), input)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, err)
 		return
 	}
 	td.Beans = beans
@@ -105,176 +90,118 @@ func (app *application) beanSearch(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "beanresults.gohtml", "beanresults", td)
 }
 
+// bean create page
 func (app *application) beanCreate(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// render form with empty model
-	td.Validator = validator.New()
-	td.Bean = &data.Bean{}
+	td.BeanCreate = &model.BeanCreateInput{}
 	app.render(w, r, http.StatusOK, "beancreate.gohtml", "base", td)
 }
 
+// bean create hx
 func (app *application) beanCreatePost(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse and decode form
-	var form beanForm
-	err := app.decodePostForm(r, &form)
+	var input *model.BeanCreateInput
+	err := app.decodePostForm(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
 		return
 	}
-
-	// pass into model
-	bean := &data.Bean{
-		Name:       form.Name,
-		RoastLevel: form.RoastLevel,
-		RoasterID:  form.RoasterID,
-	}
-	td.Bean = bean
-
-	// validate
-	v := validator.New()
-	td.Validator = v
-	bean.Validate(v)
-
-	// invalid form input
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "beancreate.gohtml", "form", td)
-		return
-	}
+	td.BeanCreate = input
 
 	// try to insert
-	err = app.repositories.Beans.Insert(bean)
+	bean, err := app.services.Beans.Create(r.Context(), input)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrInvalidRoasterID):
-			v.AddFieldError("roaster_id", "roaster id does not exist")
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
 			app.render(w, r, http.StatusUnprocessableEntity, "beancreate.gohtml", "form", td)
-		default:
-			app.serverErrorResponse(w, r, err)
+		} else {
+			app.errorResponse(w, r, err)
 		}
 		return
 	}
+	td.Bean = bean
 
 	// display success message
 	td.Result = true
 	app.render(w, r, http.StatusOK, "beancreate.gohtml", "form", td)
 }
 
+// bean edit page
 func (app *application) beanEdit(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
 	// read bean from db
-	bean, err := app.repositories.Beans.Get(id)
+	bean, err := app.services.Beans.Get(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
-	td.Bean = bean
-
-	// bogus validator for template
-	v := validator.New()
-	td.Validator = v
+	td.BeanEdit = bean.ToEditInput()
 
 	// render empty form
 	app.render(w, r, http.StatusOK, "beanedit.gohtml", "base", td)
 }
 
-func (app *application) beanEditPatch(w http.ResponseWriter, r *http.Request) {
+// bean edit hx
+func (app *application) beanEditPut(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
-	// read roaster from db
-	bean, err := app.repositories.Beans.Get(id)
+	// decode input form
+	input := &model.BeanEditInput{
+		ID: id,
+	}
+	err = app.decodePostForm(r, input)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
+		return
+	}
+
+	// update roaster
+	bean, err := app.services.Beans.Update(r.Context(), input)
+	if err != nil {
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
+			td.BeanEdit = input // only re-populate input form if validation error
+			app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
+		} else {
+			app.errorResponse(w, r, err)
 		}
 		return
 	}
 	td.Bean = bean
-
-	// decode input form
-	var form beanForm
-	err = app.decodePostForm(r, &form)
-	if err != nil {
-		app.badRequestResponse(w)
-		return
-	}
-
-	// pass form changes into model
-	bean.Name = form.Name
-	bean.RoastLevel = form.RoastLevel
-	bean.RoasterID = form.RoasterID
-
-	// validate
-	v := validator.New()
-	td.Validator = v
-	bean.Validate(v)
-
-	// case invalid - respond with FieldErrors
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
-		return
-	}
-
-	// case valid - update roaster
-	err = app.repositories.Beans.Update(bean)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrInvalidRoasterID):
-			v.AddFieldError("roaster_id", "roaster id does not exist")
-			app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
-		case errors.Is(err, data.ErrEditConflict):
-			app.editConflictResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
 
 	// display success
 	td.Result = true
 	app.render(w, r, http.StatusOK, "beanedit.gohtml", "form", td)
 }
 
+// bean remove hx
 func (app *application) beanRemove(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
-	err = app.repositories.Beans.Delete(id)
+	err = app.services.Beans.Delete(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
 

@@ -58,20 +58,20 @@ func NotBlank(value string) bool {
 	return strings.TrimSpace(value) != ""
 }
 
-func MaxChars(value string, n int) bool {
-	return utf8.RuneCountInString(value) <= n
-}
-
 func MinChars(value string, n int) bool {
 	return utf8.RuneCountInString(value) >= n
 }
 
-func MaxBytes(value string, n int) bool {
-	return len(value) <= n
+func MaxChars(value string, n int) bool {
+	return utf8.RuneCountInString(value) <= n
 }
 
 func MinBytes(value string, n int) bool {
 	return len(value) >= n
+}
+
+func MaxBytes(value string, n int) bool {
+	return len(value) <= n
 }
 
 func PermittedValue[T comparable](value T, permittedValues ...T) bool {
@@ -83,7 +83,7 @@ func Matches(value string, rx *regexp.Regexp) bool {
 }
 
 func IsURL(value string) bool {
-	// TODO: probably be more strict validation to avoid xss
+	// TODO: probably be more strict validation to avoid security issues
 	u, err := url.Parse(value)
 	if err != nil {
 		return false // unable to parse

@@ -1,11 +1,10 @@
 package main
 
 import (
-	"errors"
 	"net/http"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/data"
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/coffeetanuki/internal/model"
 )
 
 type roasterForm struct {
@@ -15,25 +14,21 @@ type roasterForm struct {
 	Location    string `form:"location"`
 }
 
+// roaster page
 func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse `id` path parameter
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
 	// read roaster from db
-	roaster, err := app.repositories.Roasters.GetFull(id)
+	roaster, err := app.services.Roasters.Get(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
 	td.Roaster = roaster
@@ -42,28 +37,30 @@ func (app *application) roasterView(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterview.gohtml", "base", td)
 }
 
+// roaster list page
 func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := app.parseSearchQuery(r)
+	// decude url query into form
+	input := &model.RoasterFilterInput{
+		Sort: "id_asc",
+	}
+	err := app.decodeURLQuery(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid url query format"))
 		return
 	}
+	td.RoasterFilter = input
 
-	v := validator.New()
-	sq.Validate(v)
-	td.SearchQuery = sq
-
-	if !v.Valid() {
-		app.badRequestResponse(w)
-		return
-	}
-
-	// read roasters from db
-	roasters, err := app.repositories.Roasters.Search(*sq)
+	// read roasters from service
+	roasters, err := app.services.Roasters.Find(r.Context(), input)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
+			app.logError(r, err)
+			app.render(w, r, http.StatusUnprocessableEntity, "roasterlist.gohtml", "base", td)
+		} else {
+			app.errorResponse(w, r, err)
+		}
 		return
 	}
 	td.Roasters = roasters
@@ -72,28 +69,22 @@ func (app *application) roasterList(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterlist.gohtml", "base", td)
 }
 
+// roaster list hx
 func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
-	sq, err := app.parseSearchQuery(r)
+	var input *model.RoasterFilterInput
+	err := app.decodeURLQuery(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid url query format"))
 		return
 	}
+	// TODO: figure out how to redirect unprocessable errors to the form
 
-	v := validator.New()
-	sq.Validate(v)
-	td.SearchQuery = sq
-
-	if !v.Valid() {
-		app.badRequestResponse(w)
-		return
-	}
-
-	// read roasters from db
-	roasters, err := app.repositories.Roasters.Search(*sq)
+	// read roasters from service
+	roasters, err := app.services.Roasters.Find(r.Context(), input)
 	if err != nil {
-		app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, err)
 		return
 	}
 	td.Roasters = roasters
@@ -105,169 +96,114 @@ func (app *application) roasterSearch(w http.ResponseWriter, r *http.Request) {
 	app.render(w, r, http.StatusOK, "roasterresults.gohtml", "roasterresults", td)
 }
 
+// roaster create page
 func (app *application) roasterCreate(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// render form with empty model
-	td.Validator = validator.New()
-	td.Roaster = &data.Roaster{}
+	td.RoasterCreate = &model.RoasterCreateInput{}
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "base", td)
 }
 
+// roaster create hx
 func (app *application) roasterCreatePost(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// parse and decode form
-	var form roasterForm
-	err := app.decodePostForm(r, &form)
+	var input *model.RoasterCreateInput
+	err := app.decodePostForm(r, input)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
 		return
 	}
+	td.RoasterCreate = input
 
-	// pass into model
-	roaster := &data.Roaster{
-		Name:        form.Name,
-		Description: form.Description,
-		Website:     form.Website,
-		Location:    form.Location,
+	// try to insert
+	roaster, err := app.services.Roasters.Create(r.Context(), input)
+	if err != nil {
+		app.errorResponse(w, r, err)
+		return
 	}
 	td.Roaster = roaster
-
-	// validate
-	v := validator.New()
-	td.Validator = v
-	roaster.Validate(v)
-
-	// case invalid - respond with FieldErrors
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "roastercreate.gohtml", "form", td)
-		return
-	}
-
-	// case valid
-	err = app.repositories.Roasters.Insert(roaster)
-	if err != nil {
-		app.serverErrorResponse(w, r, err)
-		return
-	}
 
 	// display success message
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roastercreate.gohtml", "form", td)
 }
 
+// roaster edit page
 func (app *application) roasterEdit(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
 	// read roaster from db
-	roaster, err := app.repositories.Roasters.Get(id)
+	roaster, err := app.services.Roasters.Get(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
-	td.Roaster = roaster
-
-	// bogus validator for template
-	v := validator.New()
-	td.Validator = v
+	td.RoasterEdit = roaster.ToEditInput()
 
 	// render empty form
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "base", td)
 }
 
-func (app *application) roasterEditPatch(w http.ResponseWriter, r *http.Request) {
+// roaster edit hx
+func (app *application) roasterEditPut(w http.ResponseWriter, r *http.Request) {
 	td := app.newTemplateData(r)
 
 	// read id from path
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
-	// read roaster from db
-	roaster, err := app.repositories.Roasters.Get(id)
+	// decode input form
+	input := &model.RoasterEditInput{
+		ID: id,
+	}
+	err = app.decodePostForm(r, input)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid post form format"))
+		return
+	}
+
+	// update roaster
+	roaster, err := app.services.Roasters.Update(r.Context(), input)
+	if err != nil {
+		if errs.ErrorCode(err) == errs.ERRUNPROCESSABLE {
+			td.RoasterEdit = input // only re-populate input form if validation error
+			app.render(w, r, http.StatusUnprocessableEntity, "beanedit.gohtml", "form", td)
+		} else {
+			app.errorResponse(w, r, err)
 		}
 		return
 	}
 	td.Roaster = roaster
-
-	// decode input form
-	var form roasterForm
-	err = app.decodePostForm(r, &form)
-	if err != nil {
-		app.badRequestResponse(w)
-		return
-	}
-
-	// pass form changes into model
-	roaster.Name = form.Name
-	roaster.Description = form.Description
-	roaster.Website = form.Website
-	roaster.Location = form.Location
-
-	// validate
-	v := validator.New()
-	td.Validator = v
-	roaster.Validate(v)
-
-	// case invalid - respond with FieldErrors
-	if !v.Valid() {
-		app.render(w, r, http.StatusUnprocessableEntity, "roasteredit.gohtml", "form", td)
-		return
-	}
-
-	// case valid - update roaster
-	err = app.repositories.Roasters.Update(roaster)
-	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrEditConflict):
-			app.editConflictResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
-		return
-	}
 
 	// display success
 	td.Result = true
 	app.render(w, r, http.StatusOK, "roasteredit.gohtml", "form", td)
 }
 
+// roaster remove hx
 func (app *application) roasterRemove(w http.ResponseWriter, r *http.Request) {
 	id, err := app.readIDParam(r)
 	if err != nil {
-		app.badRequestResponse(w)
+		app.errorResponse(w, r, errs.Errorf(errs.ERRBAD, "invalid id format"))
 		return
 	}
 
-	err = app.repositories.Roasters.Delete(id)
+	err = app.services.Roasters.Delete(r.Context(), id)
 	if err != nil {
-		switch {
-		case errors.Is(err, data.ErrRecordNotFound):
-			app.notFoundResponse(w)
-		default:
-			app.serverErrorResponse(w, r, err)
-		}
+		app.errorResponse(w, r, err)
 		return
 	}
 

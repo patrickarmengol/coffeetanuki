@@ -7,20 +7,20 @@
         {{block "form" .}}
         <form hx-post='/hx/user/login' hx-target='this' hx-swap='outerHTML'>
             <div>
-                {{range .Validator.NonFieldErrors}}
+                {{range .UserLogin.Validator.NonFieldErrors}}
                 <label class='error'>{{.}}</label>
                 {{end}}
             </div>
             <div>
                 <label for='email'>Email Address:</label>
-                {{with .Validator.FieldErrors.email}}
+                {{with .UserLogin.Validator.FieldErrors.email}}
                 <label class='error'>{{.}}</label>
                 {{end}}
-                <input type='email' id='email' name='email' value='{{if not .Result}}{{.User.Email}}{{end}}' required />
+                <input type='email' id='email' name='email' value='{{if not .Result}}{{.UserLogin.Email}}{{end}}' required />
             </div>
             <div>
                 <label for='password'>Password:</label>
-                {{with .Validator.FieldErrors.password}}
+                {{with .UserLogin.Validator.FieldErrors.password}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='password' id='password' name='password' value='' required />

@@ -8,28 +8,28 @@
         <form hx-post='/hx/roasters' hx-target='this' hx-swap='outerHTML'>
             <div>
                 <label for='name'>Name:</label>
-                {{with .Validator.FieldErrors.name}}
+                {{with .RoasterCreate.Validator.FieldErrors.name}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='name' name='name' value='{{if not .Result}}{{.Roaster.Name}}{{end}}' required />
             </div>
             <div>
                 <label for='description'>Description:</label>
-                {{with .Validator.FieldErrors.description}}
+                {{with .RoasterCreate.Validator.FieldErrors.description}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='description' name='description' value='{{if not .Result}}{{.Roaster.Description}}{{end}}' required />
             </div>
             <div>
                 <label for='website'>Website:</label>
-                {{with .Validator.FieldErrors.website}}
+                {{with .RoasterCreate.Validator.FieldErrors.website}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='website' name='website' value='{{if not .Result}}{{.Roaster.Website}}{{end}}' required />
             </div>
             <div>
                 <label for='location'>Location:</label>
-                {{with .Validator.FieldErrors.location}}
+                {{with .RoasterCreate.Validator.FieldErrors.location}}
                 <label class='error'>{{.}}</label>
                 {{end}}
                 <input type='text' id='location' name='location' value='{{if not .Result}}{{.Roaster.Location}}{{end}}' required />
