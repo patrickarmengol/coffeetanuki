@@ -9,8 +9,10 @@ import (
 	"sync"
 	"time"
 
+	sqladapter "github.com/Blank-Xu/sql-adapter"
 	"github.com/alexedwards/scs/postgresstore"
 	"github.com/alexedwards/scs/v2"
+	"github.com/casbin/casbin/v2"
 	"github.com/go-playground/form/v4"
 	"github.com/patrickarmengol/coffeetanuki/internal/service"
 	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
@@ -38,6 +40,7 @@ type application struct {
 	config         config
 	formDecoder    *form.Decoder
 	logger         *slog.Logger
+	rbacEnforcer   *casbin.Enforcer
 	services       *service.Services
 	sessionManager *scs.SessionManager
 	templateCache  map[string]*template.Template
@@ -97,11 +100,29 @@ func main() {
 	smgr := scs.New()
 	smgr.Store = postgresstore.New(db)
 
+	// initialize casbin authorization
+	cada, err := sqladapter.NewAdapter(db, "postgres", "")
+	if err != nil {
+		lgr.Error(err.Error())
+		os.Exit(1)
+	}
+	cenf, err := casbin.NewEnforcer("rbac_model.conf", cada)
+	if err != nil {
+		lgr.Error(err.Error())
+		os.Exit(1)
+	}
+	err = cenf.LoadPolicy()
+	if err != nil {
+		lgr.Error(err.Error())
+		os.Exit(1)
+	}
+
 	// construct application
 	app := &application{
 		config:         cfg,
 		formDecoder:    fdcdr,
 		logger:         lgr,
+		rbacEnforcer:   cenf,
 		services:       svcs,
 		sessionManager: smgr,
 		templateCache:  tmpls,

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/patrickarmengol/coffeetanuki/internal/errs"
@@ -78,25 +79,26 @@ func (app *application) requireActivatedUser(next http.Handler) http.Handler {
 
 func (app *application) requirePermission(code string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
-		fn := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			user := app.contextGetUser(r)
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			obj, act, found := strings.Cut(code, ":")
+			if !found {
+				panic("permission codes should have a semicolon separator")
+			}
 
-			// query permissions each time since permissions may change
-			permissions, err := app.services.Users.GetPermissions(r.Context(), user.ID)
+			sub := app.contextGetUser(r).Name
+
+			ok, err := app.rbacEnforcer.Enforce(sub, obj, act)
 			if err != nil {
 				app.errorResponse(w, r, err)
 				return
 			}
-
-			if !permissions.Contains(code) {
+			if !ok {
 				app.errorResponse(w, r, errs.Errorf(errs.ERRNOTAUTHORIZED, "user does not have required permissions"))
 				return
 			}
 
 			next.ServeHTTP(w, r)
 		})
-
-		return app.requireActivatedUser(fn)
 	}
 }
 

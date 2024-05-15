@@ -13,3 +13,9 @@ require (
 	github.com/alexedwards/scs/v2 v2.7.0
 	golang.org/x/crypto v0.14.0
 )
+
+require (
+	github.com/Blank-Xu/sql-adapter v1.0.0 // indirect
+	github.com/casbin/casbin/v2 v2.87.1 // indirect
+	github.com/casbin/govaluate v1.1.0 // indirect
+)

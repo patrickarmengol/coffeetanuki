@@ -1,18 +1,16 @@
-CREATE TABLE IF NOT EXISTS permissions (
+CREATE TABLE IF NOT EXISTS roles (
     id bigserial PRIMARY KEY,
-    code text NOT NULL
-);
+    name text NOT NULL
+)
 
-CREATE TABLE IF NOT EXISTS users_permissions (
+CREATE TABLE IF NOT EXISTS users_roles (
     user_id bigint NOT NULL REFERENCES users ON DELETE CASCADE,
-    permission_id bigint NOT NULL REFERENCES permissions ON DELETE CASCADE,
-    PRIMARY KEY (user_id, permission_id)
-);
+    role_id bigint NOT NULL REFERENCES roles ON DELETE CASCADE;
+)
 
-INSERT INTO permissions (code)
+INSERT INTO roles (name)
 VALUES
-    ('beans:read'),
-    ('beans:write'),
-    ('roasters:read'),
-    ('roasters:write');
-    
+    ('guest'),
+    ('user'),
+    ('moderator'),
+    ('admin');
