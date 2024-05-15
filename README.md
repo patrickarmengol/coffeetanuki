@@ -1,5 +1,7 @@
 # coffeetanuki
 
+> abandoning this project before completion; project scope kept changing; not even something that interested me anymore
+
 Website for rating/reviewing coffee beans and roasters.
 
 ## Installation
@@ -24,9 +26,9 @@ Available recipes:
 
 The source code for `coffeetanuki` is distributed under the terms of any of the following licenses:
 
-- [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html)
-- [MIT](https://spdx.org/licenses/MIT.html)
+-   [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html)
+-   [MIT](https://spdx.org/licenses/MIT.html)
 
 The content on the site is distributed under:
 
-- [CC BY NC SA 4.0](https://spdx.org/licenses/CC-BY-NC-SA-4.0.html)
+-   [CC BY NC SA 4.0](https://spdx.org/licenses/CC-BY-NC-SA-4.0.html)
