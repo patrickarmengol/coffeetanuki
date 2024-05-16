@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 func (app *application) authenticate(next http.Handler) http.Handler {

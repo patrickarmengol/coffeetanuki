@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/lib/pq"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 // TODO: maybe write a setRolePermisisonsForUser() to set based on roles; define roles in model package

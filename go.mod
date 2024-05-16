@@ -1,4 +1,4 @@
-module github.com/patrickarmengol/coffeetanuki
+module github.com/patrickarmengol/somethingsomethingcoffee
 
 go 1.21.3
 

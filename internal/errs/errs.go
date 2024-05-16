@@ -22,7 +22,7 @@ type Error struct {
 }
 
 func (e *Error) Error() string {
-	return fmt.Sprintf("coffeetanuki error: code=%s message=%s", e.Code, e.Message)
+	return fmt.Sprintf("somethingsomethingcoffee error: code=%s message=%s", e.Code, e.Message)
 }
 
 func Errorf(code string, format string, args ...any) *Error {

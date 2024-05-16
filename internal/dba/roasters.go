@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/lib/pq"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 // crud

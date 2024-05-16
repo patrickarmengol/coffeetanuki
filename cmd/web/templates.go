@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
-	"github.com/patrickarmengol/coffeetanuki/ui"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/ui"
 )
 
 type templateData struct {

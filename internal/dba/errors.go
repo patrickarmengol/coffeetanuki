@@ -1,6 +1,6 @@
 package dba
 
-import "github.com/patrickarmengol/coffeetanuki/internal/errs"
+import "github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
 
 func errInvalidFK(tableName string, fkName string, fkValue int64) *errs.Error {
 	return errs.Errorf(errs.ERRUNPROCESSABLE, "invalid foreign key on table [%s] for field [%s] with value [%d]", tableName, fkName, fkValue)

@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 type contextKey string

@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/validator"
 	"golang.org/x/crypto/bcrypt"
 )
 

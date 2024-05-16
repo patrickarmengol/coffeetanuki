@@ -4,9 +4,9 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/dba"
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/dba"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 	"golang.org/x/crypto/bcrypt"
 )
 

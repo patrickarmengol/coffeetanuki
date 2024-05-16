@@ -5,8 +5,8 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 func CreateUser(ctx context.Context, dbtx DBTX, p *model.UserCreateParams) (*model.UserDB, error) {

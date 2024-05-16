@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
 )
 
 func (app *application) errorResponse(w http.ResponseWriter, r *http.Request, err error) {

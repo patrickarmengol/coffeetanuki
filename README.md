@@ -1,4 +1,4 @@
-# coffeetanuki
+# somethingsomethingcoffee
 
 > abandoning this project before completion; project scope kept changing; not even something that interested me anymore
 
@@ -24,7 +24,7 @@ Available recipes:
 
 ## License
 
-The source code for `coffeetanuki` is distributed under the terms of any of the following licenses:
+The source code for `somethingsomethingcoffee` is distributed under the terms of any of the following licenses:
 
 -   [Apache-2.0](https://spdx.org/licenses/Apache-2.0.html)
 -   [MIT](https://spdx.org/licenses/MIT.html)

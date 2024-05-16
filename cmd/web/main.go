@@ -14,8 +14,8 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/casbin/casbin/v2"
 	"github.com/go-playground/form/v4"
-	"github.com/patrickarmengol/coffeetanuki/internal/service"
-	"github.com/patrickarmengol/coffeetanuki/internal/vcs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/service"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/vcs"
 )
 
 var version = vcs.Version()

@@ -5,9 +5,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/dba"
-	"github.com/patrickarmengol/coffeetanuki/internal/errs"
-	"github.com/patrickarmengol/coffeetanuki/internal/model"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/dba"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/errs"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/model"
 )
 
 type RoasterService struct {

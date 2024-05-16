@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/patrickarmengol/coffeetanuki/internal/validator"
+	"github.com/patrickarmengol/somethingsomethingcoffee/internal/validator"
 )
 
 // passed from handler to service
